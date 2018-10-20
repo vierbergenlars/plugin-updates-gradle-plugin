@@ -33,7 +33,7 @@ public class UpdateChecker {
 
         Set<ResolvedDependency> upToDateDependencies = upToDateConfiguration.getFirstLevelModuleDependencies();
 
-        return oldConfiguration.getFirstLevelModuleDependencies().parallelStream()
+        return oldConfiguration.getFirstLevelModuleDependencies().stream()
                 .map(oldResolvedDependency -> new Update(project, configuration, oldResolvedDependency,
                         findDependency(upToDateDependencies, oldResolvedDependency)
                                 .orElseGet(() -> oldResolvedDependency)));
@@ -41,7 +41,7 @@ public class UpdateChecker {
 
     private static Optional<ResolvedDependency> findDependency(Set<ResolvedDependency> dependencies,
             ResolvedDependency dependency) {
-        return dependencies.parallelStream()
+        return dependencies.stream()
                 .filter(dependency2 -> dependency.getModuleGroup().equals(dependency2.getModuleGroup()))
                 .filter(dependency1 -> dependency.getModuleName().equals(dependency1.getModuleName()))
                 .findFirst();
@@ -50,7 +50,7 @@ public class UpdateChecker {
     private static Configuration createLatestConfiguration(Project project, Configuration configuration) {
         DependencySet dependencies = configuration.getDependencies();
 
-        Stream<Dependency> newDependenciesStream = dependencies.parallelStream()
+        Stream<Dependency> newDependenciesStream = dependencies.stream()
                 .filter(dependency -> dependency instanceof ExternalDependency)
                 .map(dependency -> createLatestDependency(project, dependency));
 
