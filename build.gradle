@@ -9,7 +9,7 @@ group 'be.vbgn.gradle'
 sourceCompatibility = 1.8
 
 repositories {
-    mavenCentral()
+    jcenter()
 }
 
 configurations.compile.dependencies.clear() // Remove current gradleApi dependency
