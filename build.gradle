@@ -20,7 +20,9 @@ gradlePlugin {
     }
 }
 
+configurations.compile.dependencies.clear() // Remove current gradleApi dependency
 dependencies {
-    compile gradleApi()
+    compileOnly 'org.gradle:gradle-core:3.2.1'
+    compile localGroovy()
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
