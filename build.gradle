@@ -1,14 +1,18 @@
 plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
+    id "com.gradle.plugin-publish" version "0.10.0"
+    id 'org.ajoberstar.reckon' version "0.8.0"
 }
 group 'be.vbgn.gradle'
-version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
 
-repositories {
-    mavenCentral()
+configurations.compile.dependencies.clear() // Remove current gradleApi dependency
+dependencies {
+    compileOnly 'org.gradle:gradle-core:3.2.1'
+    compile localGroovy()
+    testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
 gradlePlugin {
@@ -20,9 +24,22 @@ gradlePlugin {
     }
 }
 
-configurations.compile.dependencies.clear() // Remove current gradleApi dependency
-dependencies {
-    compileOnly 'org.gradle:gradle-core:3.2.1'
-    compile localGroovy()
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+pluginBundle {
+    vcsUrl = "https://github.com/vierbergenlars/plugin-updates-gradle-plugin"
+    website = vcsUrl
+    description = "A gradle plugin that automatically notifies about plugins that can be updated."
+    tags = ["plugin", "update", "gradle-updates"]
+    plugins {
+        pluginUpdates {
+            displayName = "Plugin updates plugin"
+        }
+    }
 }
+
+reckon {
+    scopeFromProp()
+    snapshotFromProp()
+}
+
+reckonTagCreate.dependsOn(check)
+
