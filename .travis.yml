@@ -1,10 +1,4 @@
 language: java
-addons:
-  apt:
-    packages:
-      - docker-ce
-services:
-  - docker
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
