@@ -3,6 +3,7 @@ package be.vbgn.gradle.pluginupdates;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.util.VersionNumber;
 
 public class Update {
 
@@ -52,7 +53,9 @@ public class Update {
     }
 
     public boolean isOutdated() {
-        return !getOldVersion().equals(getNewVersion());
+        VersionNumber oldVersion = VersionNumber.parse(getOldVersion());
+        VersionNumber newVersion = VersionNumber.parse(getNewVersion());
+        return newVersion.compareTo(oldVersion) > 0;
     }
 
     @Override

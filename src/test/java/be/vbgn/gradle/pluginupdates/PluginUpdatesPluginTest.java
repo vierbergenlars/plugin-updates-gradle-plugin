@@ -42,7 +42,7 @@ public class PluginUpdatesPluginTest {
 
         assertTrue(buildResult.getOutput()
                 .contains(
-                        "Plugin is outdated in project test-project: org.gradle:gradle-hello-world-plugin [0.1 -> 0.2]"));
+                        "Plugin is outdated in project test-project: org.gradle.hello-world:org.gradle.hello-world.gradle.plugin [0.1 -> 0.2]"));
     }
 
     private void writeFile(File destination, String content) throws IOException {
