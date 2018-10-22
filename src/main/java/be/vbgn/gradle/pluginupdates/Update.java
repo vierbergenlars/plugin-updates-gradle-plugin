@@ -49,10 +49,16 @@ public class Update {
     }
 
     public String getNewVersion() {
+        if (newDependency == null) {
+            return null;
+        }
         return newDependency.getModuleVersion();
     }
 
     public boolean isOutdated() {
+        if (getNewVersion() == null) {
+            return false;
+        }
         VersionNumber oldVersion = VersionNumber.parse(getOldVersion());
         VersionNumber newVersion = VersionNumber.parse(getNewVersion());
         return newVersion.compareTo(oldVersion) > 0;
