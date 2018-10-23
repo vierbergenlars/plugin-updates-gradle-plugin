@@ -1,2 +1,3 @@
 rootProject.name = 'plugin-updates-plugin'
+enableFeaturePreview('STABLE_PUBLISHING')
 

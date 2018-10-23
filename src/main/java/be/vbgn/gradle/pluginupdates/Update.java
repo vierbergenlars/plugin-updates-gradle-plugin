@@ -2,29 +2,28 @@ package be.vbgn.gradle.pluginupdates;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.util.VersionNumber;
 
 public class Update {
 
     private Project project;
     private Configuration configuration;
-    private ResolvedDependency oldDependency;
-    private ResolvedDependency newDependency;
+    private Dependency oldDependency;
+    private Dependency newDependency;
 
-    Update(Project project, Configuration configuration, ResolvedDependency oldDependency,
-            ResolvedDependency newDependency) {
+    Update(Project project, Configuration configuration, Dependency oldDependency,
+            Dependency newDependency) {
         this.project = project;
         this.configuration = configuration;
         this.oldDependency = oldDependency;
         this.newDependency = newDependency;
     }
 
-    public ResolvedDependency getOldDependency() {
+    public Dependency getOldDependency() {
         return oldDependency;
     }
 
-    public ResolvedDependency getNewDependency() {
+    public Dependency getNewDependency() {
         return newDependency;
     }
 
@@ -37,22 +36,22 @@ public class Update {
     }
 
     public String getModuleName() {
-        return oldDependency.getModuleName();
+        return oldDependency.getName();
     }
 
     public String getModuleGroup() {
-        return oldDependency.getModuleGroup();
+        return oldDependency.getGroup();
     }
 
     public String getOldVersion() {
-        return oldDependency.getModuleVersion();
+        return oldDependency.getVersion();
     }
 
     public String getNewVersion() {
         if (newDependency == null) {
             return null;
         }
-        return newDependency.getModuleVersion();
+        return newDependency.getVersion();
     }
 
     public boolean isOutdated() {
