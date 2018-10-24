@@ -59,9 +59,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
                 .filter(Update::isOutdated)
                 .forEach(update -> {
                     gradle.getRootProject().getLogger()
-                            .warn("Plugin is outdated in project " + update.getProjectName() + ": " + update
-                                    .getModuleGroup() + ":" + update.getModuleName() + " [" + update.getOldVersion()
-                                    + " -> " + update.getNewVersion() + "]");
+                            .warn(update.getMessage());
                 });
     }
 

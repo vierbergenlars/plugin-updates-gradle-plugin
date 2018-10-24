@@ -1,5 +1,7 @@
 package be.vbgn.gradle.pluginupdates;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,11 +45,11 @@ public class UpdateChecker {
         LenientConfiguration upToDateConfiguration = createLatestConfiguration(project, configuration)
                 .getResolvedConfiguration().getLenientConfiguration();
 
-        Set<Dependency> upToDateDependencies = upToDateConfiguration
+        List<Dependency> upToDateDependencies = upToDateConfiguration
                 .getAllModuleDependencies()
                 .stream()
-                .map(Dependency::new)
-                .collect(Collectors.toSet());
+                .flatMap(Dependency::fromGradle)
+                .collect(Collectors.toList());
         ;
 
         LOGGER.debug("Resolved: {}", upToDateDependencies);
@@ -59,7 +61,7 @@ public class UpdateChecker {
         });
 
         return oldConfiguration.getFirstLevelModuleDependencies().stream()
-                .map(Dependency::new)
+                .flatMap(Dependency::fromGradle)
                 .peek(dependency -> LOGGER
                         .debug("Dependency of {}: {}", configuration, dependency))
                 .map(oldResolvedDependency -> new Update(project, configuration, oldResolvedDependency,
@@ -67,12 +69,13 @@ public class UpdateChecker {
     }
 
     private static Dependency findDependency(
-            Set<Dependency> dependencies,
+            Collection<Dependency> dependencies,
             Dependency dependency) {
         return dependencies.stream()
                 .filter(dependency1 -> dependency.getGroup().equals(dependency1.getGroup()))
                 .filter(dependency1 -> dependency.getName().equals(dependency1.getName()))
                 .filter(dependency1 -> dependency.getClassifier().equals(dependency1.getClassifier()))
+                .filter(dependency1 -> dependency.getType().equals(dependency1.getType()))
                 .peek(dependency1 -> LOGGER.debug("Found {} as latest release of {}", dependency1, dependency))
                 .findAny()
                 .orElseGet(() -> {
@@ -89,7 +92,7 @@ public class UpdateChecker {
         Set<org.gradle.api.artifacts.Dependency> newDependencies = configuration.getDependencies().stream()
                 .filter(dependency -> dependency instanceof ExternalDependency)
                 .map(dependency -> (ExternalDependency) dependency)
-                .map(Dependency::new)
+                .flatMap(Dependency::fromGradle)
                 .map(dependency -> dependency.withVersion("+"))
                 .peek(dependency -> LOGGER.debug("New dependency for {}: {}", newConfiguration, dependency))
                 .map(dependency -> project.getDependencies().create(dependency.toDependencyNotation()))

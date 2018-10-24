@@ -3,6 +3,7 @@ package be.vbgn.gradle.pluginupdates;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -16,6 +17,8 @@ public class Dependency {
     private String classifier;
     private String type;
 
+    public static final String DEFAULT_TYPE = DependencyArtifact.DEFAULT_TYPE;
+
     public Dependency(String group, String name, String version, String classifier, String type) {
         this.group = group;
         this.name = name;
@@ -24,11 +27,7 @@ public class Dependency {
         this.type = type;
     }
 
-    public Dependency(ResolvedDependency dependency) {
-        this(dependency, dependency.getModuleArtifacts().stream().findAny().orElse(null));
-    }
-
-    public Dependency(ResolvedDependency dependency, ResolvedArtifact artifact) {
+    private Dependency(ResolvedDependency dependency, ResolvedArtifact artifact) {
         group = dependency.getModuleGroup();
         name = dependency.getModuleName();
         version = dependency.getModuleVersion();
@@ -40,11 +39,7 @@ public class Dependency {
     }
 
 
-    public Dependency(ExternalDependency dependency) {
-        this(dependency, dependency.getArtifacts().stream().findAny().orElse(null));
-    }
-
-    public Dependency(ExternalDependency dependency, DependencyArtifact artifact) {
+    private Dependency(ExternalDependency dependency, DependencyArtifact artifact) {
         group = dependency.getGroup();
         name = dependency.getName();
         version = dependency.getVersion();
@@ -53,6 +48,22 @@ public class Dependency {
             classifier = artifact.getClassifier();
             type = artifact.getType();
         }
+    }
+
+    public static Stream<Dependency> fromGradle(ExternalDependency dependency) {
+        if (dependency.getArtifacts().isEmpty()) {
+            return Stream.of(new Dependency(dependency, null));
+        }
+        return dependency.getArtifacts().stream()
+                .map(artifact -> new Dependency(dependency, artifact));
+    }
+
+    public static Stream<Dependency> fromGradle(ResolvedDependency dependency) {
+        if (dependency.getModuleArtifacts().isEmpty()) {
+            return Stream.of(new Dependency(dependency, null));
+        }
+        return dependency.getModuleArtifacts().stream()
+                .map(artifact -> new Dependency(dependency, artifact));
     }
 
     public String getGroup() {
@@ -76,7 +87,7 @@ public class Dependency {
 
     public String getType() {
         if (type == null) {
-            return DependencyArtifact.DEFAULT_TYPE;
+            return DEFAULT_TYPE;
         }
         return type;
     }
@@ -109,7 +120,7 @@ public class Dependency {
         if (!getClassifier().isEmpty()) {
             dependencyNotation.put("classifier", getClassifier());
         }
-        if (!getType().equals(DependencyArtifact.DEFAULT_TYPE)) {
+        if (!getType().equals(DEFAULT_TYPE)) {
             dependencyNotation.put("ext", getType());
         }
 
@@ -121,7 +132,7 @@ public class Dependency {
         if (!getClassifier().isEmpty()) {
             dependencyNotation += ":" + getClassifier();
         }
-        if (!getType().equals(DependencyArtifact.DEFAULT_TYPE)) {
+        if (!getType().equals(DEFAULT_TYPE)) {
             dependencyNotation += "@" + getType();
         }
         return dependencyNotation;

@@ -43,15 +43,19 @@ public class Update {
         return oldDependency.getGroup();
     }
 
+    public String getModuleClassifier() {
+        return oldDependency.getClassifier();
+    }
+
     public String getOldVersion() {
         return oldDependency.getVersion();
     }
 
     public String getNewVersion() {
-        if (newDependency == null) {
+        if (getNewDependency() == null) {
             return null;
         }
-        return newDependency.getVersion();
+        return getNewDependency().getVersion();
     }
 
     public boolean isOutdated() {
@@ -61,6 +65,32 @@ public class Update {
         VersionNumber oldVersion = VersionNumber.parse(getOldVersion());
         VersionNumber newVersion = VersionNumber.parse(getNewVersion());
         return newVersion.compareTo(oldVersion) > 0;
+    }
+
+    public String getMessage() {
+
+        String message = "Plugin is outdated in project " + getProjectName() + ": ";
+        message += getPartialMessage(getOldDependency().getGroup(), getNewDependency().getGroup()) + ":";
+        message += getPartialMessage(getOldDependency().getName(), getNewDependency().getName()) + ":";
+        message += getPartialMessage(getOldDependency().getVersion(), getNewDependency().getVersion());
+
+        if (!getOldDependency().getClassifier().isEmpty() || !getNewDependency().getClassifier().isEmpty()) {
+            message += ":" + getPartialMessage(getOldDependency().getClassifier(), getNewDependency().getClassifier());
+        }
+
+        if (!getOldDependency().getType().equals(Dependency.DEFAULT_TYPE) || !getNewDependency().getType()
+                .equals(Dependency.DEFAULT_TYPE)) {
+            message += "@" + getPartialMessage(getOldDependency().getType(), getNewDependency().getType());
+        }
+
+        return message;
+    }
+
+    private String getPartialMessage(String part1, String part2) {
+        if (part1.equals(part2)) {
+            return part1;
+        }
+        return "[" + part1 + " -> " + part2 + "]";
     }
 
     @Override

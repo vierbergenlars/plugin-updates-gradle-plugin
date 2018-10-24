@@ -38,13 +38,48 @@ public class PluginUpdatesPluginTest {
                 .withPluginClasspath()
                 .withProjectDir(testProjectDir.getRoot())
                 .forwardOutput()
+                .withDebug(true)
+                .withArguments("clean")
                 .build();
 
         assertTrue(buildResult.getOutput()
                 .contains(
-                        "Plugin is outdated in project test-project: org.gradle.hello-world:org.gradle.hello-world.gradle.plugin [0.1 -> 0.2]"));
+                        "Plugin is outdated in project test-project: org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:[0.1 -> 0.2]"));
     }
 
+    @Test
+    public void applyProjectWithClassifiers() throws Exception {
+        writeFile(buildFile, "buildscript {\n"
+                + "dependencies {\n"
+                + "classpath 'org.gradle:gradle-hello-world-plugin:0.1:sources'\n"
+                + "classpath 'org.gradle:gradle-hello-world-plugin:0.1@pom'\n"
+                + "classpath 'org.gradle:gradle-hello-world-plugin:0.1'\n"
+                + "}\n"
+                + "}\n"
+                + "plugins {\n"
+                + "id 'java'\n"
+                + "id 'be.vbgn.plugin-updates'\n"
+                + "}\n"
+        );
+        writeFile(settingsFile, "rootProject.name = 'test-project'");
+        BuildResult buildResult = GradleRunner.create()
+                .withPluginClasspath()
+                .withProjectDir(testProjectDir.getRoot())
+                .withDebug(true)
+                .forwardOutput()
+                .withArguments("clean")
+                .build();
+        assertTrue(buildResult.getOutput()
+                .contains(
+                        "Plugin is outdated in project test-project: org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]"));
+        assertTrue(buildResult.getOutput()
+                .contains(
+                        "Plugin is outdated in project test-project: org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]@pom"));
+
+        assertTrue(buildResult.getOutput()
+                .contains(
+                        "Plugin is outdated in project test-project: org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]:sources"));
+    }
     private void writeFile(File destination, String content) throws IOException {
         BufferedWriter output = null;
         try {
