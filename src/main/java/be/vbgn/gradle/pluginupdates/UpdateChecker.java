@@ -1,11 +1,16 @@
 package be.vbgn.gradle.pluginupdates;
 
+import be.vbgn.gradle.pluginupdates.dependency.DefaultDependency;
+import be.vbgn.gradle.pluginupdates.dependency.Dependency;
+import be.vbgn.gradle.pluginupdates.update.Update;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ExternalDependency;
@@ -36,6 +41,7 @@ public class UpdateChecker {
     }
 
     public static Stream<Update> checkUpdates(Project project, Configuration configuration) {
+
         LOGGER.debug("Checking updates for {}, {}", project, configuration);
         if (configuration.isEmpty()) {
             LOGGER.debug("{} is empty, no update checking needed.", configuration);
@@ -48,7 +54,7 @@ public class UpdateChecker {
         List<Dependency> upToDateDependencies = upToDateConfiguration
                 .getAllModuleDependencies()
                 .stream()
-                .flatMap(Dependency::fromGradle)
+                .flatMap(DefaultDependency::fromGradle)
                 .collect(Collectors.toList());
         ;
 
@@ -61,11 +67,37 @@ public class UpdateChecker {
         });
 
         return oldConfiguration.getFirstLevelModuleDependencies().stream()
-                .flatMap(Dependency::fromGradle)
+                .flatMap(DefaultDependency::fromGradle)
                 .peek(dependency -> LOGGER
                         .debug("Dependency of {}: {}", configuration, dependency))
-                .map(oldResolvedDependency -> new Update(project, configuration, oldResolvedDependency,
-                        findDependency(upToDateDependencies, oldResolvedDependency)));
+                .map(oldResolvedDependency -> new Update() {
+                    @Override
+                    public Dependency getOriginal() {
+                        return oldResolvedDependency;
+                    }
+
+                    @Override
+                    public List<Dependency> getUpdates() {
+                        return Collections.singletonList(findDependency(upToDateDependencies, oldResolvedDependency));
+                    }
+                });
+    }
+
+    private static Dependency checkUpdatedDependencySingle(Project project, Configuration configuration,
+            Dependency dependency, Transformer<Dependency, Dependency> dependencyTransformer) {
+        Configuration upToDateConfiguration = configuration.copy();
+        upToDateConfiguration.setTransitive(false);
+        upToDateConfiguration.getDependencies().clear();
+        upToDateConfiguration.getArtifacts().clear();
+
+        org.gradle.api.artifacts.Dependency upToDateDependency = project.getDependencies()
+                .create(dependencyTransformer.transform(dependency).toDependencyNotation());
+        upToDateConfiguration.getDependencies().add(upToDateDependency);
+
+        LenientConfiguration lenientUpToDateConfiguration = upToDateConfiguration.getResolvedConfiguration()
+                .getLenientConfiguration();
+        return null;
+
     }
 
     private static Dependency findDependency(
@@ -92,7 +124,7 @@ public class UpdateChecker {
         Set<org.gradle.api.artifacts.Dependency> newDependencies = configuration.getDependencies().stream()
                 .filter(dependency -> dependency instanceof ExternalDependency)
                 .map(dependency -> (ExternalDependency) dependency)
-                .flatMap(Dependency::fromGradle)
+                .flatMap(DefaultDependency::fromGradle)
                 .map(dependency -> dependency.withVersion("+"))
                 .peek(dependency -> LOGGER.debug("New dependency for {}: {}", newConfiguration, dependency))
                 .map(dependency -> project.getDependencies().create(dependency.toDependencyNotation()))
