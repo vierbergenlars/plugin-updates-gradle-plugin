@@ -50,15 +50,28 @@ public class DefaultUpdateFormatter implements UpdateFormatter {
             this.separateParts = separateParts;
         }
 
-
         @Nonnull
         public String format(@Nonnull Dependency original, @Nonnull Collection<Dependency> updates) {
             String formatted = commonParts.transform(original);
+            boolean changesClassifier = !updates.stream()
+                    .allMatch(update -> update.getClassifier().equals(original.getClassifier()));
+            Transformer<String, Dependency> separatePartsTransformer = separateParts;
+            if (changesClassifier) {
+                separatePartsTransformer = dependency ->
+                        separateParts.transform(dependency) + (dependency.getClassifier().isEmpty() ? ""
+                                : ":" + dependency.getClassifier());
+            }
             formatted += "[";
             formatted += updates.stream()
-                    .map(separateParts::transform)
-                    .reduce(separateParts.transform(original), (a, b) -> a + " -> " + b);
+                    .map(separatePartsTransformer::transform)
+                    .reduce(separatePartsTransformer.transform(original), (a, b) -> a + " -> " + b);
             formatted += "]";
+            if (!changesClassifier && !original.getClassifier().isEmpty()) {
+                formatted += ":" + original.getClassifier();
+            }
+            if (!original.getType().equals(Dependency.DEFAULT_TYPE)) {
+                formatted += "@" + original.getType();
+            }
             return formatted;
 
         }
@@ -73,7 +86,7 @@ public class DefaultUpdateFormatter implements UpdateFormatter {
                     return dependencyDiff;
                 }
             }
-            return GROUP;
+            return NONE;
         }
 
         @Nonnull

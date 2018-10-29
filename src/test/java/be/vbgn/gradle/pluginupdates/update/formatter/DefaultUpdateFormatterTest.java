@@ -51,6 +51,21 @@ public class DefaultUpdateFormatterTest {
     }
 
     @Test
+    public void formatChangedVersionWithClassifierAndType() throws Exception {
+        Dependency original = new DefaultDependency("be.vbgn.test", "test1", "0.5.6", "shaded", "pom");
+        List<Dependency> updates = new LinkedList<>();
+        updates.add(original.withVersion("0.5.7"));
+        Update update = new UpdateImpl(original, updates);
+
+        UpdateFormatter formatter = new DefaultUpdateFormatter();
+
+        assertEquals("be.vbgn.test:test1:[0.5.6 -> 0.5.7]:shaded@pom", formatter.format(update));
+
+        updates.add(original.withVersion("1.0.0"));
+        assertEquals("be.vbgn.test:test1:[0.5.6 -> 0.5.7 -> 1.0.0]:shaded@pom", formatter.format(update));
+    }
+
+    @Test
     public void formatChangedName() throws Exception {
         Dependency original = new DefaultDependency("be.vbgn.test", "test1", "0.5.6");
         List<Dependency> updates = new LinkedList<>();
@@ -81,4 +96,37 @@ public class DefaultUpdateFormatterTest {
                 formatter.format(update));
     }
 
+    @Test
+    public void formatChangedClassifierAndVersion() throws Exception {
+        Dependency original = new DefaultDependency("be.vbgn.test", "test1", "0.5.6");
+        List<Dependency> updates = new LinkedList<>();
+        updates.add(
+                original.withVersion("0.5.7").withClassifier("shaded"));
+        Update update = new UpdateImpl(original, updates);
+
+        UpdateFormatter formatter = new DefaultUpdateFormatter();
+
+        assertEquals("be.vbgn.test:test1:[0.5.6 -> 0.5.7:shaded]", formatter.format(update));
+
+        updates.add(original.withVersion("1.0.0"));
+        assertEquals("be.vbgn.test:test1:[0.5.6 -> 0.5.7:shaded -> 1.0.0]",
+                formatter.format(update));
+    }
+
+    @Test
+    public void formatChangedClassifier() throws Exception {
+        Dependency original = new DefaultDependency("be.vbgn.test", "test1", "0.5.6");
+        List<Dependency> updates = new LinkedList<>();
+        updates.add(
+                original.withClassifier("shaded"));
+        Update update = new UpdateImpl(original, updates);
+
+        UpdateFormatter formatter = new DefaultUpdateFormatter();
+
+        assertEquals("be.vbgn.test:test1:0.5.6[ -> :shaded]", formatter.format(update));
+
+        updates.add(original.withVersion("1.0.0"));
+        assertEquals("be.vbgn.test:test1:[0.5.6 -> 0.5.6:shaded -> 1.0.0]",
+                formatter.format(update));
+    }
 }
