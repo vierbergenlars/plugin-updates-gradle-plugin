@@ -42,6 +42,7 @@ public class DefaultUpdateChecker implements UpdateChecker {
     @Nonnull
     private Stream<Dependency> getUpdatedDependencies(@Nonnull Dependency dependency) {
         return updateFinder.findUpdates(dependency)
+                .distinct()
                 .sorted(Comparator.comparing(Dependency::getVersion));
     }
 
