@@ -1,6 +1,7 @@
 package be.vbgn.gradle.pluginupdates.update.formatter;
 
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
+import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
 import be.vbgn.gradle.pluginupdates.update.Update;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,6 +18,9 @@ public class DefaultUpdateFormatter implements UpdateFormatter {
         Dependency previous = original;
         DependencyDiff diff = DependencyDiff.NONE;
         for (Dependency dependency : update.getUpdates()) {
+            if (dependency instanceof FailedDependency) {
+                continue;
+            }
             diff = DependencyDiff.findDiff(diff, DependencyDiff.findDiff(previous, dependency));
             previous = dependency;
         }
