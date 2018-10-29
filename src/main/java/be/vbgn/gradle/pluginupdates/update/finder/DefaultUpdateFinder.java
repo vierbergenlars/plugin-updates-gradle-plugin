@@ -62,7 +62,7 @@ public class DefaultUpdateFinder implements UpdateFinder {
                             .peek(dependency1 -> {
                                 if (dependency1 instanceof FailedDependency) {
                                     LOGGER.debug("Suppressed failure to resolve {}: {}", dependency1,
-                                            ((FailedDependency) dependency1).getProblem());
+                                            ((FailedDependency) dependency1).getProblem().getMessage());
                                 }
                             })
                             .filter(dependency1 -> !(dependency1 instanceof FailedDependency));
@@ -88,7 +88,7 @@ public class DefaultUpdateFinder implements UpdateFinder {
             versions.add(new FailureAllowedVersion(version.withMicro(wildcard), version.getMicro().isEmpty()));
         }
         if (!version.getMicro().isEmpty()) {
-            versions.add(new FailureAllowedVersion(version.withPatch(wildcard), version.getMicro().isEmpty()));
+            versions.add(new FailureAllowedVersion(version.withPatch(wildcard), version.getPatch().isEmpty()));
         }
         return versions.stream()
                 .distinct()
