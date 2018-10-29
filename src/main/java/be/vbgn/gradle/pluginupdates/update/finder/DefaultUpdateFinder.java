@@ -49,32 +49,55 @@ public class DefaultUpdateFinder implements UpdateFinder {
         Version dependencyVersion = dependency.getVersion();
 
         return generateVersionConstraints(dependencyVersion)
-                .flatMap(version -> findUpdatedDependency(dependency.withVersion(version)));
+                .flatMap(failureAllowedVersion -> {
+                    Dependency toLookup = dependency.withVersion(failureAllowedVersion.version);
+                    Stream<Dependency> resolvedDependencies = resolveDependency(toLookup);
+
+                    if (!failureAllowedVersion.failureAllowed) {
+                        return resolvedDependencies;
+                    }
+                    // If failure of a version is allowed, filter out all failed dependencies as if they were never asked for
+                    // Failures may occur because we look up wildcards one level deeper than we have a version number.
+                    return resolvedDependencies
+                            .peek(dependency1 -> {
+                                if (dependency1 instanceof FailedDependency) {
+                                    LOGGER.debug("Suppressed failure to resolve {}: {}", dependency1,
+                                            ((FailedDependency) dependency1).getProblem());
+                                }
+                            })
+                            .filter(dependency1 -> !(dependency1 instanceof FailedDependency));
+                })
+                .peek(dependency1 -> {
+                    if (dependency1 instanceof FailedDependency) {
+                        LOGGER.warn("Could not resolve {}", dependency1);
+                        LOGGER.debug("Resolve exception", ((FailedDependency) dependency1).getProblem());
+                    }
+                });
     }
 
     @Nonnull
-    private Stream<Version> generateVersionConstraints(@Nonnull Version version) {
+    private Stream<FailureAllowedVersion> generateVersionConstraints(@Nonnull Version version) {
         LOGGER.debug("Generating update constraints for version {}", version);
         NumberWildcard wildcard = NumberWildcard.wildcard();
-        Set<Version> versions = new HashSet<>();
-        versions.add(version.withMajor(wildcard));
+        Set<FailureAllowedVersion> versions = new HashSet<>();
+        versions.add(new FailureAllowedVersion(version.withMajor(wildcard), version.getMajor().isEmpty()));
         if (!version.getMajor().isEmpty()) {
-            versions.add(version.withMinor(wildcard));
+            versions.add(new FailureAllowedVersion(version.withMinor(wildcard), version.getMinor().isEmpty()));
         }
         if (!version.getMinor().isEmpty()) {
-            versions.add(version.withMicro(wildcard));
+            versions.add(new FailureAllowedVersion(version.withMicro(wildcard), version.getMicro().isEmpty()));
         }
         if (!version.getMicro().isEmpty()) {
-            versions.add(version.withPatch(wildcard));
-
+            versions.add(new FailureAllowedVersion(version.withPatch(wildcard), version.getMicro().isEmpty()));
         }
         return versions.stream()
                 .distinct()
-                .peek(version1 -> LOGGER.debug("Update constraint: {}", version1));
+                .peek(version1 -> LOGGER.debug("Update constraint: {}, failure allowed: {}", version1.version,
+                        version1.failureAllowed));
     }
 
     @Nonnull
-    private Stream<Dependency> findUpdatedDependency(@Nonnull Dependency dependency) {
+    private Stream<Dependency> resolveDependency(@Nonnull Dependency dependency) {
         LOGGER.debug("Resolving dependency {}", dependency);
         org.gradle.api.artifacts.Dependency updatedDependency = dependencyHandler
                 .create(dependency.toDependencyNotation());
@@ -85,21 +108,24 @@ public class DefaultUpdateFinder implements UpdateFinder {
         LenientConfiguration updatedLenientConfiguration = updatedConfiguration.getResolvedConfiguration()
                 .getLenientConfiguration();
 
-        updatedLenientConfiguration.getUnresolvedModuleDependencies()
-                .forEach(unresolvedDependency -> LOGGER
-                        .warn("Could not check updates for {}: {}", dependency,
-                                unresolvedDependency.getProblem().getMessage(), unresolvedDependency.getProblem()));
-
         Stream<FailedDependency> failedDependencies = updatedLenientConfiguration.getUnresolvedModuleDependencies()
                 .stream()
-                .map(DefaultFailedDependency::fromGradle)
-                .peek(dependency1 -> LOGGER
-                        .warn("Could not check updates for {}:  {}", dependency1,
-                                dependency1.getProblem().getMessage()));
+                .map(DefaultFailedDependency::fromGradle);
         Stream<Dependency> updatedDependencies = updatedLenientConfiguration.getAllModuleDependencies().stream()
                 .flatMap(DefaultDependency::fromGradle);
 
         return Stream.concat(failedDependencies, updatedDependencies)
                 .peek(dependency1 -> LOGGER.debug("Resolved dependency {} to {}", dependency, dependency1));
+    }
+
+    private static class FailureAllowedVersion {
+
+        private Version version;
+        private boolean failureAllowed;
+
+        private FailureAllowedVersion(Version version, boolean failureAllowed) {
+            this.version = version;
+            this.failureAllowed = failureAllowed;
+        }
     }
 }

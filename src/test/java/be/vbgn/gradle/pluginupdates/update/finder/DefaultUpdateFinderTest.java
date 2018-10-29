@@ -54,9 +54,8 @@ public class DefaultUpdateFinderTest {
 
         updates.sort(Comparator.comparing(Dependency::getVersion));
 
-        assertEquals(3, updates.size());
-        assertEquals(Version.parse("0.1.+"), updates.get(0).getVersion());
-        assertEquals(Version.parse("0.+"), updates.get(1).getVersion());
-        assertEquals(Version.parse("+"), updates.get(2).getVersion());
+        assertEquals(2, updates.size());
+        assertEquals(Version.parse("0.+"), updates.get(0).getVersion());
+        assertEquals(Version.parse("+"), updates.get(1).getVersion());
     }
 }
