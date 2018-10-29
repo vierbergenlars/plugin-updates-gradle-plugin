@@ -58,12 +58,13 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
         UpdateFormatter updateFormatter = new DefaultUpdateFormatter();
         Gradle gradle = buildResult.getGradle();
         gradle.getRootProject().getAllprojects().parallelStream()
-                .flatMap(UpdateChecker::checkBuildscriptUpdates)
-                .peek(update -> LOGGER.debug("Found dependency: {}", update))
-                .filter(Update::isOutdated)
-                .forEach(update -> {
-                    LOGGER.warn(updateFormatter.format(update));
-                });
+                .forEach(project -> UpdateChecker.checkBuildscriptUpdates(project)
+                        .peek(update -> LOGGER.debug("Found dependency: {}", update))
+                        .filter(Update::isOutdated)
+                        .forEach(update -> {
+                            LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
+                                    .format(update));
+                        })
+                );
     }
-
 }
