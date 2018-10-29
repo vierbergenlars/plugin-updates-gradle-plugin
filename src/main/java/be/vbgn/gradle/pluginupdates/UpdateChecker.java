@@ -8,6 +8,8 @@ import java.util.stream.Stream;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -16,29 +18,32 @@ public class UpdateChecker {
     public static Logger LOGGER = Logging.getLogger(UpdateChecker.class);
 
     public static Stream<Update> checkBuildscriptUpdates(Project project) {
-        return checkUpdates(project, project.getBuildscript().getConfigurations().getAt("classpath"));
+        return checkUpdates(project.getBuildscript(), project.getBuildscript().getConfigurations().getAt("classpath"));
+    }
+
+    public static Stream<Update> checkUpdates(ScriptHandler scriptHandler, Configuration configuration) {
+        return checkUpdates(scriptHandler.getDependencies(), scriptHandler.getConfigurations(), configuration);
     }
 
     public static Stream<Update> checkUpdates(Project project) {
-        return checkUpdates(project, project.getConfigurations());
-    }
-
-    public static Stream<Update> checkUpdates(Project project, ConfigurationContainer configurationContainer) {
-        LOGGER.debug("Checking updates for {}, {}", project, configurationContainer);
+        ConfigurationContainer configurationContainer = project.getConfigurations();
+        DependencyHandler dependencyHandler = project.getDependencies();
         return configurationContainer.stream()
                 .filter(Configuration::isVisible)
-                .flatMap(configuration -> checkUpdates(project, configuration))
-                .peek(update -> LOGGER.info("Found update {}", update));
+                .flatMap(configuration -> checkUpdates(dependencyHandler, configurationContainer, configuration));
     }
 
-    public static Stream<Update> checkUpdates(Project project, Configuration configuration) {
+    private static Stream<Update> checkUpdates(DependencyHandler dependencyHandler,
+            ConfigurationContainer configurationContainer, Configuration configuration) {
+        return createChecker(dependencyHandler, configurationContainer).getUpdates(configuration);
+    }
 
-        LOGGER.debug("Checking updates for {}, {}", project, configuration);
+    private static be.vbgn.gradle.pluginupdates.update.checker.UpdateChecker createChecker(
+            DependencyHandler dependencyHandler,
+            ConfigurationContainer configurationContainer) {
+        UpdateFinder updateFinder = new DefaultUpdateFinder(dependencyHandler, configurationContainer);
+        return new DefaultUpdateChecker(updateFinder);
 
-        UpdateFinder updateFinder = new DefaultUpdateFinder(project);
-        be.vbgn.gradle.pluginupdates.update.checker.UpdateChecker updateChecker = new DefaultUpdateChecker(
-                updateFinder);
-
-        return updateChecker.getUpdates(configuration);
     }
 }
+

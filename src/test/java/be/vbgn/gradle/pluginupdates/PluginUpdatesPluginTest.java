@@ -62,8 +62,8 @@ public class PluginUpdatesPluginTest {
                 .build();
 
         String[] expectedMessages = {
-                "Plugin is outdated in project test-project: org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:[0.1 -> 0.2]",
-                "Plugin is outdated in project test-project: org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]"
+                "Plugin is outdated in root project 'test-project': org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:[0.1 -> 0.2]",
+                "Plugin is outdated in root project 'test-project': org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]"
         };
 
         boolean matched = false;
@@ -104,14 +104,14 @@ public class PluginUpdatesPluginTest {
                 .build();
         assertTrue(buildResult.getOutput()
                 .contains(
-                        "Plugin is outdated in project test-project: org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]"));
+                        "Plugin is outdated in root project 'test-project': org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]"));
         assertTrue(buildResult.getOutput()
                 .contains(
-                        "Plugin is outdated in project test-project: org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]@pom"));
+                        "Plugin is outdated in root project 'test-project': org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]@pom"));
 
         assertTrue(buildResult.getOutput()
                 .contains(
-                        "Plugin is outdated in project test-project: org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]:sources"));
+                        "Plugin is outdated in root project 'test-project': org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]:sources"));
     }
 
     private void writeFile(File destination, String content) throws IOException {
