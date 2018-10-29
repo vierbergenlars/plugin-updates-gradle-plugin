@@ -113,19 +113,19 @@ public class DefaultDependency implements Dependency {
 
     @Override
     @Nonnull
-    public DefaultDependency withGroup(String group) {
+    public DefaultDependency withGroup(@Nonnull String group) {
         return new DefaultDependency(group, name, version, classifier, type);
     }
 
     @Override
     @Nonnull
-    public DefaultDependency withName(String name) {
+    public DefaultDependency withName(@Nonnull String name) {
         return new DefaultDependency(group, name, version, classifier, type);
     }
 
     @Override
     @Nonnull
-    public DefaultDependency withVersion(Version version) {
+    public DefaultDependency withVersion(@Nonnull Version version) {
         return new DefaultDependency(group, name, version, classifier, type);
     }
 

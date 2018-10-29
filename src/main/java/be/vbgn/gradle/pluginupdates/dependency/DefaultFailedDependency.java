@@ -9,7 +9,7 @@ public class DefaultFailedDependency extends DefaultDependency implements Failed
     @Nonnull
     private Throwable problem;
 
-    private DefaultFailedDependency(@Nonnull String group, @Nonnull String name, @Nonnull String version,
+    public DefaultFailedDependency(@Nonnull String group, @Nonnull String name, @Nonnull String version,
             @Nonnull Throwable problem) {
         super(group, name, version);
         this.problem = problem;
