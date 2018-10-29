@@ -7,6 +7,7 @@ import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.update.Update;
 import java.util.LinkedList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.junit.Test;
 
 public class DefaultUpdateFormatterTest {
@@ -21,11 +22,13 @@ public class DefaultUpdateFormatterTest {
             this.updates = updates;
         }
 
+        @Nonnull
         @Override
         public Dependency getOriginal() {
             return original;
         }
 
+        @Nonnull
         @Override
         public List<Dependency> getUpdates() {
             return updates;

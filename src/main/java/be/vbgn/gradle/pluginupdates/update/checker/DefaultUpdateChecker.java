@@ -56,7 +56,7 @@ public class DefaultUpdateChecker implements UpdateChecker {
             this(original, updates.collect(Collectors.toList()));
         }
 
-        public UpdateEntry(@Nonnull Dependency original, @Nonnull List<Dependency> updates) {
+        private UpdateEntry(@Nonnull Dependency original, @Nonnull List<Dependency> updates) {
             this.original = original;
             this.updates = updates;
         }

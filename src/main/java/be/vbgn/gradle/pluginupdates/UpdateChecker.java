@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
@@ -71,11 +72,13 @@ public class UpdateChecker {
                 .peek(dependency -> LOGGER
                         .debug("Dependency of {}: {}", configuration, dependency))
                 .map(oldResolvedDependency -> new Update() {
+                    @Nonnull
                     @Override
                     public Dependency getOriginal() {
                         return oldResolvedDependency;
                     }
 
+                    @Nonnull
                     @Override
                     public List<Dependency> getUpdates() {
                         return Collections.singletonList(findDependency(upToDateDependencies, oldResolvedDependency));
