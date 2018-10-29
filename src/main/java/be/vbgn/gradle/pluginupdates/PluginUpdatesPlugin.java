@@ -1,5 +1,8 @@
 package be.vbgn.gradle.pluginupdates;
 
+import be.vbgn.gradle.pluginupdates.update.Update;
+import be.vbgn.gradle.pluginupdates.update.formatter.DefaultUpdateFormatter;
+import be.vbgn.gradle.pluginupdates.update.formatter.UpdateFormatter;
 import org.codehaus.groovy.runtime.MethodClosure;
 import org.gradle.BuildResult;
 import org.gradle.api.Plugin;
@@ -52,15 +55,16 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
     }
 
     private void onBuildFinished(BuildResult buildResult) {
+        UpdateFormatter updateFormatter = new DefaultUpdateFormatter();
         Gradle gradle = buildResult.getGradle();
         gradle.getRootProject().getAllprojects().parallelStream()
-                .flatMap(UpdateChecker::checkBuildscriptUpdates)
-                .peek(update -> LOGGER.debug("Found dependency: {}", update))
-                .filter(Update::isOutdated)
-                .forEach(update -> {
-                    gradle.getRootProject().getLogger()
-                            .warn(update.getMessage());
-                });
+                .forEach(project -> UpdateChecker.checkBuildscriptUpdates(project)
+                        .peek(update -> LOGGER.debug("Found dependency: {}", update))
+                        .filter(Update::isOutdated)
+                        .forEach(update -> {
+                            LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
+                                    .format(update));
+                        })
+                );
     }
-
 }
