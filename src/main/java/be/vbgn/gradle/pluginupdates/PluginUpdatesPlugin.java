@@ -16,7 +16,8 @@ import org.gradle.util.GradleVersion;
 
 public class PluginUpdatesPlugin implements Plugin<PluginAware> {
 
-    public static Logger LOGGER = Logging.getLogger(PluginUpdatesPlugin.class);
+    private static Logger LOGGER = Logging.getLogger(PluginUpdatesPlugin.class);
+    private static String PLUGIN_ID = "be.vbgn.plugin-updates";
     @Override
     public void apply(PluginAware thing) {
         LOGGER.debug("Plugin applied to {}", thing.getClass());
@@ -65,7 +66,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
         gradle.getRootProject().getAllprojects()
                 .parallelStream()
                 .filter(project -> {
-                    if (project.getPlugins().hasPlugin(PluginUpdatesPlugin.class)) {
+                    if (project.getPlugins().hasPlugin(PLUGIN_ID)) {
                         LOGGER.debug("Project {} has the plugin applied. Skipping for global updates check.", project);
                         return false;
                     }
