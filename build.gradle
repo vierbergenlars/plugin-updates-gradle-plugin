@@ -29,6 +29,14 @@ configurations {
     integrationTestRuntime.extendsFrom(testRuntime)
 }
 
+task integrationTest(type: Test, group: "verification") {
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    dependsOn(publishToMavenLocal)
+}
+
+check.dependsOn(integrationTest)
+
 dependencies {
     compile gradleApi()
     compile localGroovy()
@@ -64,4 +72,3 @@ reckon {
 }
 
 reckonTagCreate.dependsOn(check)
-
