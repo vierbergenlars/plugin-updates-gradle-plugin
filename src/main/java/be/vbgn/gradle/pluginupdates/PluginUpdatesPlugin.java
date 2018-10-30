@@ -38,7 +38,13 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
     }
 
     public void apply(Project project) {
-        apply(project.getGradle());
+        Gradle gradle = project.getGradle();
+        if (gradle.getStartParameter().isOffline()) {
+            LOGGER.info("Gradle is running in offline mode, plugins will not be checked for updates");
+            return;
+        }
+        LOGGER.debug("Register buildFinished callback for single project");
+        project.getGradle().buildFinished(new MethodClosure(this, "onBuildFinished").curry(project));
     }
 
     public void apply(Settings settings) {
@@ -55,16 +61,28 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
     }
 
     private void onBuildFinished(BuildResult buildResult) {
-        UpdateFormatter updateFormatter = new DefaultUpdateFormatter();
         Gradle gradle = buildResult.getGradle();
-        gradle.getRootProject().getAllprojects().parallelStream()
-                .forEach(project -> UpdateChecker.checkBuildscriptUpdates(project)
-                        .peek(update -> LOGGER.debug("Found dependency: {}", update))
-                        .filter(Update::isOutdated)
-                        .forEach(update -> {
-                            LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
-                                    .format(update));
-                        })
-                );
+        gradle.getRootProject().getAllprojects()
+                .parallelStream()
+                .forEach(this::runBuildscriptUpdateCheck);
+    }
+
+    private void onBuildFinished(Project project, BuildResult buildResult) {
+        runBuildscriptUpdateCheck(project);
+    }
+
+    private void runBuildscriptUpdateCheck(Project project) {
+        try {
+            UpdateFormatter updateFormatter = new DefaultUpdateFormatter();
+            UpdateChecker.checkBuildscriptUpdates(project)
+                    .filter(Update::isOutdated)
+                    .forEach(update -> {
+                        LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
+                                .format(update));
+                    });
+        } catch (Throwable e) {
+            LOGGER.error("Plugin update check failed.", e);
+        }
+
     }
 }
