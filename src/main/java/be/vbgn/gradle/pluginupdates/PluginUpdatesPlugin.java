@@ -64,6 +64,13 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
         Gradle gradle = buildResult.getGradle();
         gradle.getRootProject().getAllprojects()
                 .parallelStream()
+                .filter(project -> {
+                    if (project.getPlugins().hasPlugin(PluginUpdatesPlugin.class)) {
+                        LOGGER.debug("Project {} has the plugin applied. Skipping for global updates check.", project);
+                        return false;
+                    }
+                    return true;
+                })
                 .forEach(this::runBuildscriptUpdateCheck);
     }
 
