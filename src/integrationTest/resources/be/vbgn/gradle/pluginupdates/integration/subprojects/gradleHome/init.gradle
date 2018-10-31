@@ -3,7 +3,7 @@ initscript {
         mavenLocal()
     }
     dependencies {
-        classpath "be.vbgn.gradle:plugin-updates-plugin:+"
+        classpath "be.vbgn.gradle:plugin-updates-plugin:${System.getProperty("pluginVersion")}"
     }
 
 }

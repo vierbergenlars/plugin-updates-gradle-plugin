@@ -33,9 +33,13 @@ task integrationTest(type: Test, group: "verification") {
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     dependsOn(publishToMavenLocal)
+    doFirst {
+        systemProperty "pluginVersion", project.version
+    }
 }
 
 check.dependsOn(integrationTest)
+
 
 dependencies {
     compile gradleApi()
