@@ -25,7 +25,7 @@ public class DefaultUpdateFinderTest {
         ArtifactRepository repository = project.getBuildscript().getRepositories().gradlePluginPortal();
         project.getBuildscript().getRepositories().add(repository);
 
-        UpdateFinder updateChecker = new DefaultUpdateFinder(project.getBuildscript());
+        UpdateFinder updateChecker = new DefaultUpdateFinder(project.getBuildscript(), new DefaultVersionProvider());
 
         Dependency original = new DefaultDependency("org.gradle", "gradle-hello-world-plugin", "0.1");
         List<Dependency> updates = updateChecker.findUpdates(original)
@@ -45,7 +45,7 @@ public class DefaultUpdateFinderTest {
         ArtifactRepository repository = project.getBuildscript().getRepositories().gradlePluginPortal();
         project.getBuildscript().getRepositories().add(repository);
 
-        UpdateFinder updateChecker = new DefaultUpdateFinder(project.getBuildscript());
+        UpdateFinder updateChecker = new DefaultUpdateFinder(project.getBuildscript(), new DefaultVersionProvider());
 
         Dependency original = new DefaultDependency("be.vbgn.gradle.test", "test1", "0.1");
         List<Dependency> updates = updateChecker.findUpdates(original)

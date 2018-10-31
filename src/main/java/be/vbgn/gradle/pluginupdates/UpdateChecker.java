@@ -3,7 +3,9 @@ package be.vbgn.gradle.pluginupdates;
 import be.vbgn.gradle.pluginupdates.update.Update;
 import be.vbgn.gradle.pluginupdates.update.checker.DefaultUpdateChecker;
 import be.vbgn.gradle.pluginupdates.update.finder.DefaultUpdateFinder;
+import be.vbgn.gradle.pluginupdates.update.finder.DefaultVersionProvider;
 import be.vbgn.gradle.pluginupdates.update.finder.UpdateFinder;
+import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
 import java.util.stream.Stream;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -41,7 +43,8 @@ public class UpdateChecker {
     private static be.vbgn.gradle.pluginupdates.update.checker.UpdateChecker createChecker(
             DependencyHandler dependencyHandler,
             ConfigurationContainer configurationContainer) {
-        UpdateFinder updateFinder = new DefaultUpdateFinder(dependencyHandler, configurationContainer);
+        VersionProvider versionProvider = new DefaultVersionProvider();
+        UpdateFinder updateFinder = new DefaultUpdateFinder(dependencyHandler, configurationContainer, versionProvider);
         return new DefaultUpdateChecker(updateFinder);
 
     }
