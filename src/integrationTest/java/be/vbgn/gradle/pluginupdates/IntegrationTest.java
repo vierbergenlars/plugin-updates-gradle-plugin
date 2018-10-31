@@ -38,5 +38,21 @@ public class IntegrationTest extends AbstractIntegrationTest {
         assertEquals("There should only be one outdated plugin message", 1, pluginOutdatedLines.size());
     }
 
+    @Test
+    public void settingsPlugin() throws IOException {
+        BuildResult buildResult = buildProject(integrationTests.resolve("settings-plugin"), "clean");
+
+        String[] outputLines = buildResult.getOutput().split("\n");
+
+        List<String> pluginOutdatedLines = Arrays.stream(outputLines)
+                .filter(line -> line.startsWith("Plugin is outdated"))
+                .collect(Collectors.toList());
+
+        assertEquals("There should only be one outdated plugin message", 1, pluginOutdatedLines.size());
+        assertOutputContainsOneOf(buildResult,
+                "Plugin is outdated in root project 'settings-plugin': org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]",
+                "Plugin is outdated in root project 'settings-plugin': org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:[0.1 -> 0.2]");
+    }
+
 
 }

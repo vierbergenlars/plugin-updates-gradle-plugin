@@ -7,8 +7,5 @@ buildscript {
     }
 
 }
-plugins {
-    id "base"
-    id "org.gradle.hello-world" version "0.1"
-}
 apply plugin: be.vbgn.gradle.pluginupdates.PluginUpdatesPlugin
+rootProject.name = 'settings-plugin'
