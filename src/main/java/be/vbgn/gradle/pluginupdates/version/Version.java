@@ -115,6 +115,29 @@ public class Version implements Comparable<Version> {
         return new Version(major, minor, micro, patch, qualifier);
     }
 
+    public boolean matches(@Nonnull Version other) {
+        if (!getMajor().contains(other.getMajor())) {
+            return false;
+        } else if (getMajor().hasWildcard() && getMinor().isEmpty()) {
+            return true;
+        }
+        if (!getMinor().contains(other.getMinor())) {
+            return false;
+        } else if (getMinor().hasWildcard() && getMicro().isEmpty()) {
+            return true;
+        }
+        if (!getMicro().contains(other.getMicro())) {
+            return false;
+        } else if (getMicro().hasWildcard() && getPatch().isEmpty()) {
+            return true;
+        }
+        if (!getPatch().contains(other.getPatch())) {
+            return false;
+        }
+
+        return getQualifier().equals(other.getQualifier());
+    }
+
     @Override
     public String toString() {
         String string = major.toString();
