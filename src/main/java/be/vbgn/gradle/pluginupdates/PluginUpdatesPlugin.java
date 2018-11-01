@@ -1,8 +1,23 @@
 package be.vbgn.gradle.pluginupdates;
 
+import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateBuilder;
+import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerConfigurationImpl;
 import be.vbgn.gradle.pluginupdates.update.Update;
+import be.vbgn.gradle.pluginupdates.update.checker.DefaultUpdateChecker;
+import be.vbgn.gradle.pluginupdates.update.finder.DefaultUpdateFinder;
+import be.vbgn.gradle.pluginupdates.update.finder.DefaultVersionProvider;
+import be.vbgn.gradle.pluginupdates.update.finder.UpdateFinder;
+import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
 import be.vbgn.gradle.pluginupdates.update.formatter.DefaultUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.UpdateFormatter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.codehaus.groovy.runtime.MethodClosure;
 import org.gradle.BuildResult;
 import org.gradle.api.Plugin;
@@ -16,20 +31,16 @@ import org.gradle.util.GradleVersion;
 
 public class PluginUpdatesPlugin implements Plugin<PluginAware> {
 
+    public static String PLUGIN_ID = "be.vbgn.plugin-updates";
     private static Logger LOGGER = Logging.getLogger(PluginUpdatesPlugin.class);
-    private static String PLUGIN_ID = "be.vbgn.plugin-updates";
+
     @Override
-    public void apply(PluginAware thing) {
+    public void apply(@Nonnull PluginAware thing) {
+        thing.getPluginManager().apply(ConfigurationPlugin.class);
         LOGGER.debug("Plugin applied to {}", thing.getClass());
         if (thing instanceof Project) {
             apply((Project) thing);
         } else if (thing instanceof Gradle) {
-            if (GradleVersion.current().compareTo(GradleVersion.version("3.2.1")) < 0) {
-                // Do not break init.gradle for versions older than what we compile against
-                LOGGER.warn(
-                        "Plugin updates plugin has been disabled because your gradle version is too old. Try updating to at least version 3.2.1");
-                return;
-            }
             apply((Gradle) thing);
         } else if (thing instanceof Settings) {
             apply((Settings) thing);
@@ -38,33 +49,47 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
         }
     }
 
-    public void apply(Project project) {
+    private boolean isOnline(@Nonnull Gradle gradle) {
+        if (gradle.getStartParameter().isOffline()) {
+            LOGGER.info("Gradle is running in offline mode, plugins will not be checked for updates");
+            return false;
+        }
+        return true;
+    }
+
+    public void apply(@Nonnull Project project) {
         Gradle gradle = project.getGradle();
-        if (gradle.getStartParameter().isOffline()) {
-            LOGGER.info("Gradle is running in offline mode, plugins will not be checked for updates");
+        if (isOnline(gradle)) {
+            LOGGER.debug("Register buildFinished callback for single project");
+            project.getGradle().buildFinished(new MethodClosure(this, "onBuildFinished").curry(project));
+        }
+    }
+
+    public void apply(@Nonnull Settings settings) {
+        Gradle gradle = settings.getGradle();
+        if (isOnline(gradle)) {
+            LOGGER.debug("Register buildFinished callback");
+            gradle.buildFinished(new MethodClosure(this, "onBuildFinished"));
+        }
+    }
+
+    public void apply(@Nonnull Gradle gradle) {
+        if (GradleVersion.current().compareTo(GradleVersion.version("3.2.1")) < 0) {
+            // Do not break init.gradle for versions older than what we compile against
+            LOGGER.warn(
+                    "Plugin updates plugin has been disabled because your gradle version is too old. Try updating to at least version 3.2.1");
             return;
         }
-        LOGGER.debug("Register buildFinished callback for single project");
-        project.getGradle().buildFinished(new MethodClosure(this, "onBuildFinished").curry(project));
-    }
-
-    public void apply(Settings settings) {
-        apply(settings.getGradle());
-    }
-
-    public void apply(Gradle gradle) {
-        if (gradle.getStartParameter().isOffline()) {
-            LOGGER.info("Gradle is running in offline mode, plugins will not be checked for updates");
-            return;
+        if (isOnline(gradle)) {
+            LOGGER.debug("Register buildFinished callback");
+            gradle.buildFinished(new MethodClosure(this, "onBuildFinished"));
         }
-        LOGGER.debug("Register buildFinished callback");
-        gradle.buildFinished(new MethodClosure(this, "onBuildFinished"));
     }
 
-    private void onBuildFinished(BuildResult buildResult) {
+    private void onBuildFinished(@Nonnull BuildResult buildResult) {
         Gradle gradle = buildResult.getGradle();
         gradle.getRootProject().getAllprojects()
-                .parallelStream()
+                .stream()
                 .filter(project -> {
                     if (project.getPlugins().hasPlugin(PLUGIN_ID)) {
                         LOGGER.debug("Project {} has the plugin applied. Skipping for global updates check.", project);
@@ -75,14 +100,24 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
                 .forEach(this::runBuildscriptUpdateCheck);
     }
 
-    private void onBuildFinished(Project project, BuildResult buildResult) {
+    private void onBuildFinished(@Nonnull Project project, @Nonnull BuildResult buildResult) {
         runBuildscriptUpdateCheck(project);
     }
 
-    private void runBuildscriptUpdateCheck(Project project) {
+    private void runBuildscriptUpdateCheck(@Nonnull Project project) {
         try {
+            UpdateCheckerConfigurationImpl checkerConfiguration = getUpdateCheckerConfiguration(project);
             UpdateFormatter updateFormatter = new DefaultUpdateFormatter();
-            UpdateChecker.checkBuildscriptUpdates(project)
+
+            UpdateBuilder updateBuilder = checkerConfiguration.getPolicy();
+
+            VersionProvider versionProvider = updateBuilder.buildVersionProvider(new DefaultVersionProvider());
+            UpdateFinder updateFinder = updateBuilder
+                    .buildUpdateFinder(new DefaultUpdateFinder(project.getBuildscript(), versionProvider));
+
+            DefaultUpdateChecker updateChecker = new DefaultUpdateChecker(updateFinder);
+
+            updateChecker.getUpdates(project.getBuildscript().getConfigurations().getAt("classpath"))
                     .filter(Update::isOutdated)
                     .forEach(update -> {
                         LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
@@ -92,5 +127,53 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
             LOGGER.error("Plugin update check failed.", e);
         }
 
+    }
+
+    @Nonnull
+    private UpdateCheckerConfigurationImpl getUpdateCheckerConfiguration(@Nonnull Project project) {
+        UpdateCheckerConfigurationImpl rootConfiguration = findUpdateCheckerConfiguration(project.getGradle());
+        UpdateCheckerConfigurationImpl projectConfiguration = findUpdateCheckerConfiguration(project);
+
+        return UpdateCheckerConfigurationImpl.merge(rootConfiguration, projectConfiguration);
+    }
+
+    @Nonnull
+    private UpdateCheckerConfigurationImpl findUpdateCheckerConfiguration(@Nonnull PluginAware pluginAware) {
+        ConfigurationPlugin configurationPlugin = passthroughConfigurationPlugin(
+                pluginAware.getPlugins().findPlugin(ConfigurationPlugin.PLUGIN_ID));
+        if (configurationPlugin != null) {
+            LOGGER.debug("Found update checker configuration plugin {}", configurationPlugin);
+            return configurationPlugin.configuration;
+        }
+        return new UpdateCheckerConfigurationImpl();
+    }
+
+    private ConfigurationPlugin passthroughConfigurationPlugin(@Nullable Plugin plugin) {
+        if (plugin == null) {
+            return null;
+        }
+        LOGGER.debug("Passing through plugin {}: original classloader {}", plugin, plugin.getClass().getClassLoader());
+        if (plugin.getClass() == ConfigurationPlugin.class) {
+            LOGGER.debug("No conversion needed for this class.");
+            return (ConfigurationPlugin) plugin;
+        }
+        try {
+            ByteArrayOutputStream bytearrayOutputStream = new ByteArrayOutputStream();
+            ObjectOutputStream outputStream = new ObjectOutputStream(bytearrayOutputStream);
+            outputStream.writeObject(plugin);
+
+            InputStream bytearrayInputStream = new ByteArrayInputStream(bytearrayOutputStream.toByteArray());
+            ObjectInputStream inputStream = new ObjectInputStream(bytearrayInputStream);
+
+            ConfigurationPlugin localPlugin = (ConfigurationPlugin) inputStream.readObject();
+
+            LOGGER.debug("Passing through plugin {}: new plugin {}, classloader {}", plugin, localPlugin,
+                    localPlugin.getClass().getClassLoader());
+            return localPlugin;
+
+        } catch (IOException | ClassNotFoundException e) {
+            LOGGER.error("Can not pass through configuration plugin: {}", e);
+            return null;
+        }
     }
 }

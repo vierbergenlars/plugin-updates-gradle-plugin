@@ -2,11 +2,12 @@ package be.vbgn.gradle.pluginupdates.dsl.internal;
 
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dsl.RenameSpec;
+import java.io.Serializable;
 import java.util.function.UnaryOperator;
 import javax.annotation.Nonnull;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
-public class ModuleRenameSpec implements RenameSpec {
+public class ModuleRenameSpec implements RenameSpec, Serializable {
 
     /**
      * Module that is the subject of this rename rule
@@ -26,7 +27,7 @@ public class ModuleRenameSpec implements RenameSpec {
         this.subject = subject;
     }
 
-    private boolean matchesModuleIdentifier(Dependency dependency) {
+    private boolean matchesModuleIdentifier(@Nonnull Dependency dependency) {
         return dependency.getGroup().equals(subject.getGroup()) && dependency.getName().equals(subject.getName());
     }
 

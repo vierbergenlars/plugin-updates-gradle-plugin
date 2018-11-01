@@ -1,11 +1,21 @@
 package be.vbgn.gradle.pluginupdates.dsl;
 
-public class UpdateCheckerConfiguration {
+import groovy.lang.Closure;
+import javax.annotation.Nonnull;
+import org.gradle.api.Action;
+import org.gradle.util.ConfigureUtil;
 
-    private UpdatePolicy policy;
+public interface UpdateCheckerConfiguration {
 
-    public UpdatePolicy getPolicy() {
-        return policy;
+    @Nonnull
+    UpdatePolicy getPolicy();
+
+    default void policy(@Nonnull Action<? super UpdatePolicy> policy) {
+        policy.execute(getPolicy());
+    }
+
+    default void policy(@Nonnull Closure policy) {
+        ConfigureUtil.configure(policy, getPolicy());
     }
 
 }

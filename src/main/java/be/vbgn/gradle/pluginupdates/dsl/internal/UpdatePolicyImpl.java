@@ -8,6 +8,7 @@ import be.vbgn.gradle.pluginupdates.update.finder.FailureAllowedVersion;
 import be.vbgn.gradle.pluginupdates.update.finder.RenamedModuleFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.UpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
-public class UpdatePolicyImpl implements UpdatePolicy {
+public class UpdatePolicyImpl implements UpdatePolicy, UpdateBuilder, Serializable {
 
     private Set<ModuleIgnoreSpec> moduleIgnoreSpecs = new HashSet<>();
     private Set<DependencyIgnoreSpec> dependencyIgnoreSpecs = new HashSet<>();
@@ -57,7 +58,7 @@ public class UpdatePolicyImpl implements UpdatePolicy {
                 .collect(Collectors.toSet());
 
         BiPredicate<Dependency, FailureAllowedVersion> filterPredicate = (dependency, failureAllowedVersion) -> filterPredicates
-                .stream().anyMatch(predicate -> predicate.test(dependency, failureAllowedVersion));
+                .stream().noneMatch(predicate -> predicate.test(dependency, failureAllowedVersion));
 
         return new VersionProvider() {
             @Nonnull
@@ -75,12 +76,12 @@ public class UpdatePolicyImpl implements UpdatePolicy {
                 .map(ModuleRenameSpec::getTransformer)
                 .reduce(UnaryOperator.identity(), (a, b) -> (dependency -> a.apply(b.apply(dependency))));
         UpdateFinder renamedModuleFinder = new RenamedModuleFinder(backingFinder, moduleRename);
+
         Set<Predicate<Dependency>> filterPredicates = dependencyIgnoreSpecs.stream()
                 .map(DependencyIgnoreSpec::getFilterPredicate)
                 .collect(Collectors.toSet());
-
         Predicate<Dependency> filterPredicate = dependency -> filterPredicates.stream()
-                .anyMatch(predicate -> predicate.test(dependency));
+                .noneMatch(predicate -> predicate.test(dependency));
         return new UpdateFinder() {
             @Nonnull
             @Override

@@ -44,4 +44,5 @@ public interface UpdatePolicy {
     default RenameSpec rename(@Nonnull Map<String, String> moduleNotation) {
         return rename(Util.createModuleIdentifier(moduleNotation));
     }
+
 }
