@@ -6,5 +6,7 @@ public interface IgnoreSpec {
 
     IgnoreSpec minorUpdates();
 
+    IgnoreSpec microUpdates();
+
     void because(String reason);
 }

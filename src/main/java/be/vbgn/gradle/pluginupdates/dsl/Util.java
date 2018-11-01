@@ -87,7 +87,7 @@ class Util {
         if (!dependencyNotation.containsKey("version")) {
             throw new BadNotationException("Dependency notation must contain a 'version' specifier.");
         }
-        if (dependencyNotation.size() != 0) {
+        if (dependencyNotation.size() != 3) {
             throw new BadNotationException(
                     "Dependency notation can only contain 'group', 'name' and 'version' specifiers.");
         }

@@ -58,7 +58,7 @@ public class UpdatePolicyImpl implements UpdatePolicy, UpdateBuilder, Serializab
                 .collect(Collectors.toSet());
 
         BiPredicate<Dependency, FailureAllowedVersion> filterPredicate = (dependency, failureAllowedVersion) -> filterPredicates
-                .stream().noneMatch(predicate -> predicate.test(dependency, failureAllowedVersion));
+                .stream().allMatch(predicate -> predicate.test(dependency, failureAllowedVersion));
 
         return new VersionProvider() {
             @Nonnull
@@ -81,7 +81,7 @@ public class UpdatePolicyImpl implements UpdatePolicy, UpdateBuilder, Serializab
                 .map(DependencyIgnoreSpec::getFilterPredicate)
                 .collect(Collectors.toSet());
         Predicate<Dependency> filterPredicate = dependency -> filterPredicates.stream()
-                .noneMatch(predicate -> predicate.test(dependency));
+                .allMatch(predicate -> predicate.test(dependency));
         return new UpdateFinder() {
             @Nonnull
             @Override

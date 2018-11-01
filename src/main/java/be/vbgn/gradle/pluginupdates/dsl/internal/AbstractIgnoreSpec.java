@@ -13,9 +13,13 @@ class AbstractIgnoreSpec implements IgnoreSpec {
      */
     protected boolean ignoreMajorUpdates = false;
     /**
-     * Ignore major and minor updates for this module
+     * Ignore minor updates for this module
      */
     protected boolean ignoreMinorUpdates = false;
+    /**
+     * Ignore micro updates for this module
+     */
+    protected boolean ignoreMicroUpdates = false;
 
     @Override
     public IgnoreSpec majorUpdates() {
@@ -26,9 +30,15 @@ class AbstractIgnoreSpec implements IgnoreSpec {
 
     @Override
     public IgnoreSpec minorUpdates() {
-        ignoreModule = false;
-        ignoreMajorUpdates = true;
+        majorUpdates();
         ignoreMinorUpdates = true;
+        return this;
+    }
+
+    @Override
+    public IgnoreSpec microUpdates() {
+        minorUpdates();
+        ignoreMicroUpdates = true;
         return this;
     }
 

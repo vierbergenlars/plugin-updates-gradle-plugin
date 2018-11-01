@@ -31,7 +31,10 @@ public class ModuleIgnoreSpec extends AbstractIgnoreSpec implements Serializable
         if (version.getMajor().hasWildcard() && ignoreMajorUpdates) {
             return true;
         }
-        return version.getMinor().hasWildcard() && ignoreMinorUpdates;
+        if (version.getMinor().hasWildcard() && ignoreMinorUpdates) {
+            return true;
+        }
+        return version.getMicro().hasWildcard() && ignoreMicroUpdates;
     }
 
     @Nonnull
@@ -45,7 +48,7 @@ public class ModuleIgnoreSpec extends AbstractIgnoreSpec implements Serializable
                 LOGGER.debug("Ignore rule for module {}:{} filtered out version {}", subject.getGroup(),
                         subject.getName(), failureAllowedVersion.getVersion());
             }
-            return ignored;
+            return !ignored;
         };
     }
 }
