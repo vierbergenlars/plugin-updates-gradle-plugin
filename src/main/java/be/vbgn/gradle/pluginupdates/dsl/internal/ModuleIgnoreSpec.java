@@ -1,6 +1,5 @@
 package be.vbgn.gradle.pluginupdates.dsl.internal;
 
-import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.update.finder.FailureAllowedVersion;
 import be.vbgn.gradle.pluginupdates.version.Version;
 import java.io.Serializable;
@@ -23,11 +22,14 @@ public class ModuleIgnoreSpec extends AbstractIgnoreSpec implements Serializable
         this.subject = subject;
     }
 
-    private boolean appliesToDependency(@Nonnull Dependency dependency) {
+    private boolean appliesToDependency(@Nonnull ModuleIdentifier dependency) {
         return dependency.getGroup().equals(subject.getGroup()) && dependency.getName().equals(subject.getName());
     }
 
     private boolean appliesToVersionUpdate(@Nonnull Version version) {
+        if (ignoreModule) {
+            return true;
+        }
         if (version.getMajor().hasWildcard() && ignoreMajorUpdates) {
             return true;
         }
@@ -38,7 +40,7 @@ public class ModuleIgnoreSpec extends AbstractIgnoreSpec implements Serializable
     }
 
     @Nonnull
-    public BiPredicate<Dependency, FailureAllowedVersion> getFilterPredicate() {
+    public BiPredicate<ModuleIdentifier, FailureAllowedVersion> getFilterPredicate() {
         return (dependency, failureAllowedVersion) -> {
             if (!appliesToDependency(dependency)) {
                 return true;
