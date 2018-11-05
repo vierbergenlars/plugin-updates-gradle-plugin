@@ -1,38 +1,13 @@
 package be.vbgn.gradle.pluginupdates.dsl;
 
 import be.vbgn.gradle.pluginupdates.dependency.DefaultDependency;
+import be.vbgn.gradle.pluginupdates.dependency.DefaultModuleIdentifier;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import javax.annotation.Nonnull;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 class Util {
-
-    static class ModuleId implements ModuleIdentifier, Serializable {
-
-        private String group;
-        private String name;
-
-        ModuleId(@Nonnull String group, @Nonnull String name) {
-            this.group = Objects.requireNonNull(group);
-            this.name = Objects.requireNonNull(name);
-        }
-
-        @Nonnull
-        @Override
-        public String getGroup() {
-            return group;
-        }
-
-        @Nonnull
-        @Override
-        public String getName() {
-            return name;
-        }
-    }
 
     static ModuleIdentifier createModuleIdentifier(String moduleNotation) {
         String[] parts = moduleNotation.split(":");
@@ -58,7 +33,7 @@ class Util {
         if (moduleNotation.size() != 2) {
             throw new BadNotationException("Module notation can only contain 'group' and 'name' specifiers.");
         }
-        return new ModuleId(moduleNotation.get("group"), moduleNotation.get("name"));
+        return new DefaultModuleIdentifier(moduleNotation.get("group"), moduleNotation.get("name"));
 
     }
 
