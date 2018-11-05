@@ -23,7 +23,7 @@ public class DependencyIgnoreSpec extends AbstractIgnoreSpec implements Serializ
     @Nonnull
     public Predicate<Dependency> getFilterPredicate() {
         return dependency -> {
-            if (subject.getGroup().equals(dependency.getGroup()) && subject.getName().equals(subject.getName())
+            if (subject.getGroup().equals(dependency.getGroup()) && subject.getName().equals(dependency.getName())
                     && subject.getVersion().matches(
                     dependency.getVersion())) {
                 LOGGER.debug("Ignore rule for {} removes update suggestion {}", subject, dependency);
