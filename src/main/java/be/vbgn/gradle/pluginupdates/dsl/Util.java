@@ -5,11 +5,14 @@ import be.vbgn.gradle.pluginupdates.dependency.DefaultModuleIdentifier;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+import javax.annotation.Nonnull;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 class Util {
 
-    static ModuleIdentifier createModuleIdentifier(String moduleNotation) {
+    @Nonnull
+    static ModuleIdentifier createModuleIdentifier(@Nonnull String moduleNotation) {
         String[] parts = moduleNotation.split(":");
 
         if (parts.length != 2) {
@@ -23,7 +26,8 @@ class Util {
         return createModuleIdentifier(notation);
     }
 
-    static ModuleIdentifier createModuleIdentifier(Map<String, String> moduleNotation) {
+    @Nonnull
+    static ModuleIdentifier createModuleIdentifier(@Nonnull Map<String, String> moduleNotation) {
         if (!moduleNotation.containsKey("group")) {
             throw new BadNotationException("Module notation must contain a 'group' specifier.");
         }
@@ -37,7 +41,8 @@ class Util {
 
     }
 
-    static Dependency createDependency(String dependencyNotation) {
+    @Nonnull
+    static Dependency createDependency(@Nonnull String dependencyNotation) {
         String[] parts = dependencyNotation.split(":");
 
         if (parts.length != 3) {
@@ -52,7 +57,8 @@ class Util {
         return createDependency(notation);
     }
 
-    static Dependency createDependency(Map<String, String> dependencyNotation) {
+    @Nonnull
+    static Dependency createDependency(@Nonnull Map<String, String> dependencyNotation) {
         if (!dependencyNotation.containsKey("group")) {
             throw new BadNotationException("Dependency notation must contain a 'group' specifier.");
         }
@@ -71,4 +77,32 @@ class Util {
                 dependencyNotation.get("version"));
     }
 
+    static <T> T createDependencyOrModule(@Nonnull String notation, @Nonnull Function<ModuleIdentifier, T> moduleFn,
+            @Nonnull Function<Dependency, T> dependencyFn) {
+        try {
+            return dependencyFn.apply(Util.createDependency(notation));
+        } catch (BadNotationException e1) {
+            try {
+                return moduleFn.apply(Util.createModuleIdentifier(notation));
+            } catch (BadNotationException e2) {
+                throw new BadNotationException(
+                        "Module identifier or dependency notation must contain between 2 and 3 colon separated parts.");
+            }
+        }
+    }
+
+    static <T> T createDependencyOrModule(@Nonnull Map<String, String> notation,
+            @Nonnull Function<ModuleIdentifier, T> moduleFn,
+            @Nonnull Function<Dependency, T> dependencyFn) {
+        try {
+            return dependencyFn.apply(Util.createDependency(notation));
+        } catch (BadNotationException e1) {
+            try {
+                return moduleFn.apply(Util.createModuleIdentifier(notation));
+            } catch (BadNotationException e2) {
+                throw new BadNotationException(
+                        "Module identifier or dependency notation must contain a 'group' and 'name' specifier and optionally a 'version' specifier.");
+            }
+        }
+    }
 }

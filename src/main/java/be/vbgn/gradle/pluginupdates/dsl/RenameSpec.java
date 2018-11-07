@@ -12,18 +12,22 @@ public interface RenameSpec {
     void to(@Nonnull Dependency dependency);
 
     default void to(@Nonnull String moduleNotation) {
-        try {
-            to(Util.createDependency(moduleNotation));
-        } catch (BadNotationException e) {
-            to(Util.createModuleIdentifier(moduleNotation));
-        }
+        Util.createDependencyOrModule(moduleNotation, m -> {
+            this.to(m);
+            return null;
+        }, d -> {
+            this.to(d);
+            return null;
+        });
     }
 
     default void to(@Nonnull Map<String, String> moduleNotation) {
-        try {
-            to(Util.createDependency(moduleNotation));
-        } catch (BadNotationException e) {
-            to(Util.createModuleIdentifier(moduleNotation));
-        }
+        Util.createDependencyOrModule(moduleNotation, m -> {
+            this.to(m);
+            return null;
+        }, d -> {
+            this.to(d);
+            return null;
+        });
     }
 }

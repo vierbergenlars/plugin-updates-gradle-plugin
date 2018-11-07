@@ -15,20 +15,12 @@ public interface UpdatePolicy {
 
     @Nonnull
     default IgnoreSpec ignore(@Nonnull String dependencyNotation) {
-        try {
-            return ignore(Util.createDependency(dependencyNotation));
-        } catch (BadNotationException e) {
-            return ignore(Util.createModuleIdentifier(dependencyNotation));
-        }
+        return Util.createDependencyOrModule(dependencyNotation, this::ignore, this::ignore);
     }
 
     @Nonnull
     default IgnoreSpec ignore(@Nonnull Map<String, String> dependencyNotation) {
-        try {
-            return ignore(Util.createDependency(dependencyNotation));
-        } catch (BadNotationException e) {
-            return ignore(Util.createModuleIdentifier(dependencyNotation));
-        }
+        return Util.createDependencyOrModule(dependencyNotation, this::ignore, this::ignore);
     }
 
     @Nonnull
