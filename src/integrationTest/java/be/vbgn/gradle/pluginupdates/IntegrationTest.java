@@ -75,4 +75,24 @@ public class IntegrationTest extends AbstractIntegrationTest {
         );
     }
 
+    @Test
+    public void pluginUpdatesPolicyProject() throws IOException {
+        assumeTrue("Gradle version is at least 4.0.0",
+                Version.parse(gradleVersion).getMajor().getNumberComponent() >= 4);
+        BuildResult buildResult = buildProject(integrationTests.resolve("pluginUpdates-policy-project"), "clean");
+
+        String[] outputLines = buildResult.getOutput().split("\n");
+
+        List<String> pluginOutdatedLines = Arrays.stream(outputLines)
+                .filter(line -> line.startsWith("Plugin is outdated"))
+                .collect(Collectors.toList());
+
+        assertEquals("There should only be one outdated plugin message", 1, pluginOutdatedLines.size());
+        assertOutputContainsOneOf(buildResult,
+                "Plugin is outdated in root project 'pluginUpdates-policy': [eu.xenit.gradle:alfresco-sdk:0.1.3 -> org.gradle:gradle-hello-world-plugin:0.2]",
+                "Plugin is outdated in root project 'pluginUpdates-policy': [eu.xenit.alfresco:eu.xenit.alfresco.gradle.plugin:0.1.3 -> org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:0.2]"
+        );
+
+    }
+
 }

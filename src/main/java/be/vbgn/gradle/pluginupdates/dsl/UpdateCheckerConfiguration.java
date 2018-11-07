@@ -15,7 +15,7 @@ public interface UpdateCheckerConfiguration {
     }
 
     default void policy(@Nonnull Closure policy) {
-        ConfigureUtil.configure(policy, getPolicy());
+        policy(ConfigureUtil.configureUsing(policy));
     }
 
 }

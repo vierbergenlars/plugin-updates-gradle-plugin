@@ -17,44 +17,59 @@ public class ModuleRenameSpec implements RenameSpec, Serializable {
     private ModuleIdentifier subject;
 
     @Nullable
-    private UnaryOperator<Dependency> uncheckedTransformer = null;
+    private ModuleIdentifier targetModule;
+
+    @Nullable
+    private Dependency targetDependency;
 
     public ModuleRenameSpec(@Nonnull ModuleIdentifier subject) {
         this.subject = subject;
     }
 
-    private boolean matchesModuleIdentifier(@Nonnull Dependency dependency) {
+    private boolean matchesModuleIdentifier(@Nonnull ModuleIdentifier dependency) {
         return dependency.getGroup().equals(subject.getGroup()) && dependency.getName().equals(subject.getName());
+    }
+
+    private void validateEmpty() {
+        if (targetModule != null || targetDependency != null) {
+            throw new IllegalStateException("The rename target can only be specified once.");
+        }
     }
 
     @Override
     public void to(@Nonnull ModuleIdentifier module) {
-        if (uncheckedTransformer != null) {
-            throw new IllegalStateException("The rename target can only be specified once.");
-        }
-        uncheckedTransformer = dependency -> dependency.withGroup(module.getGroup()).withName(module.getName());
+        validateEmpty();
+        targetModule = module;
     }
 
     @Override
     public void to(@Nonnull Dependency dependency) {
-        if (uncheckedTransformer != null) {
-            throw new IllegalStateException("The rename target can only be specified once.");
-        }
-        uncheckedTransformer = dependency1 -> dependency1.withGroup(dependency.getGroup())
-                .withName(dependency.getName()).withVersion(dependency.getVersion());
+        validateEmpty();
+        targetDependency = dependency;
     }
 
     @Nonnull
     public UnaryOperator<Dependency> getTransformer() {
-        if (uncheckedTransformer == null) {
-            throw new IllegalStateException(
-                    "You must call to() to set the rename target before fetching the transformer.");
+        if (targetModule != null) {
+            return dependency -> {
+                if (!matchesModuleIdentifier(dependency)) {
+                    return dependency;
+                }
+                return dependency.withGroup(targetModule.getGroup()).withName(targetModule.getName());
+            };
         }
-        return dependency -> {
-            if (!matchesModuleIdentifier(dependency)) {
-                return dependency;
-            }
-            return uncheckedTransformer.apply(dependency);
-        };
+
+        if (targetDependency != null) {
+            return dependency -> {
+                if (!matchesModuleIdentifier(dependency)) {
+                    return dependency;
+                }
+                return dependency.withGroup(targetDependency.getGroup()).withName(targetDependency.getName())
+                        .withVersion(targetDependency.getVersion());
+            };
+
+        }
+        throw new IllegalStateException(
+                "You must call to() to set the rename target before fetching the transformer.");
     }
 }

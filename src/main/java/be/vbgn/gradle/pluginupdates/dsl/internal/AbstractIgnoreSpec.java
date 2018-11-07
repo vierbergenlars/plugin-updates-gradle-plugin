@@ -1,8 +1,9 @@
 package be.vbgn.gradle.pluginupdates.dsl.internal;
 
 import be.vbgn.gradle.pluginupdates.dsl.IgnoreSpec;
+import java.io.Serializable;
 
-class AbstractIgnoreSpec implements IgnoreSpec {
+class AbstractIgnoreSpec implements IgnoreSpec, Serializable {
 
     /**
      * Ignore all updates for this module

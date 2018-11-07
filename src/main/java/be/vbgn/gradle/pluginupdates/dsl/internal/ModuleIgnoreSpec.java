@@ -3,14 +3,13 @@ package be.vbgn.gradle.pluginupdates.dsl.internal;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.update.finder.FailureAllowedVersion;
 import be.vbgn.gradle.pluginupdates.version.Version;
-import java.io.Serializable;
 import java.util.function.BiPredicate;
 import javax.annotation.Nonnull;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-public class ModuleIgnoreSpec extends AbstractIgnoreSpec implements Serializable {
+public class ModuleIgnoreSpec extends AbstractIgnoreSpec {
 
     /**
      * Module that is the subject of this ignore rule

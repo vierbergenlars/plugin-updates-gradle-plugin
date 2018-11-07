@@ -1,7 +1,10 @@
 package be.vbgn.gradle.pluginupdates;
 
+import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateBuilder;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerConfigurationImpl;
 import groovy.lang.GroovyObject;
+import java.io.IOException;
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.ExtensionAware;
@@ -34,6 +37,23 @@ public class ConfigurationPlugin implements Plugin<PluginAware>, Serializable {
     @Override
     public void apply(PluginAware target) {
         configuration = createExtension(target, "pluginUpdates", UpdateCheckerConfigurationImpl.class);
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out)
+            throws IOException {
+        out.writeObject(configuration.getPolicy());
+
+    }
+
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        configuration = new UpdateCheckerConfigurationImpl((UpdateBuilder) in.readObject());
+
+    }
+
+    private void readObjectNoData()
+            throws ObjectStreamException {
+        configuration = new UpdateCheckerConfigurationImpl();
     }
 }
 

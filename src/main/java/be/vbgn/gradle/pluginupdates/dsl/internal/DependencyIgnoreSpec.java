@@ -1,13 +1,12 @@
 package be.vbgn.gradle.pluginupdates.dsl.internal;
 
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
-import java.io.Serializable;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-public class DependencyIgnoreSpec extends AbstractIgnoreSpec implements Serializable {
+public class DependencyIgnoreSpec extends AbstractIgnoreSpec {
 
     /**
      * Dependency that is the subject of this ignore rule
