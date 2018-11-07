@@ -53,7 +53,7 @@ public class UpdatePolicyImpl implements UpdatePolicy, UpdateBuilder, Serializab
 
     @Nonnull
     public VersionProvider buildVersionProvider(@Nonnull VersionProvider backingProvider) {
-        Set<BiPredicate<ModuleIdentifier, FailureAllowedVersion>> filterPredicates = moduleIgnoreSpecs.stream()
+        Set<BiPredicate<Dependency, FailureAllowedVersion>> filterPredicates = moduleIgnoreSpecs.stream()
                 .map(ModuleIgnoreSpec::getFilterPredicate)
                 .collect(Collectors.toSet());
 

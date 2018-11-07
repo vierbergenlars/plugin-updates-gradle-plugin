@@ -29,4 +29,10 @@ public class DefaultModuleIdentifier implements ModuleIdentifier, Serializable {
     public String getName() {
         return name;
     }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return getGroup() + ":" + getName();
+    }
 }

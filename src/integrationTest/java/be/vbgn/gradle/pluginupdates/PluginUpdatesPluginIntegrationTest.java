@@ -19,7 +19,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class PluginUpdatesPluginTest {
+public class PluginUpdatesPluginIntegrationTest {
 
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -35,7 +35,7 @@ public class PluginUpdatesPluginTest {
 
     private String gradleVersion;
 
-    public PluginUpdatesPluginTest(String gradleVersion) {
+    public PluginUpdatesPluginIntegrationTest(String gradleVersion) {
         this.gradleVersion = gradleVersion;
     }
 

@@ -3,26 +3,29 @@ package be.vbgn.gradle.pluginupdates.dsl.internal;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import be.vbgn.gradle.pluginupdates.dependency.DefaultDependency;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultModuleIdentifier;
+import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.update.finder.FailureAllowedVersion;
 import be.vbgn.gradle.pluginupdates.version.Version;
 import java.util.function.BiPredicate;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.junit.Test;
 
 public class ModuleIgnoreSpecTest {
+
     @Test
     public void ignoreModule() {
         ModuleIgnoreSpec ignoreSpec = new ModuleIgnoreSpec(new DefaultModuleIdentifier("be.vbgn.gradle", "test123"));
 
-        BiPredicate<ModuleIdentifier, FailureAllowedVersion> filter = ignoreSpec.getFilterPredicate();
+        BiPredicate<Dependency, FailureAllowedVersion> filter = ignoreSpec.getFilterPredicate();
 
         FailureAllowedVersion failureAllowedVersion = new FailureAllowedVersion(Version.parse("1.2.+"), true);
 
-        assertFalse(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle", "test123"), failureAllowedVersion));
+        assertFalse(filter.test(new DefaultDependency("be.vbgn.gradle", "test123", "1.2.0"), failureAllowedVersion));
 
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle", "test"), failureAllowedVersion));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"), failureAllowedVersion));
+        assertTrue(filter.test(new DefaultDependency("be.vbgn.gradle", "test", "1.2.0"), failureAllowedVersion));
+        assertTrue(
+                filter.test(new DefaultDependency("be.vbgn.gradle.test", "test123", "1.2.0"), failureAllowedVersion));
     }
 
     @Test
@@ -31,24 +34,39 @@ public class ModuleIgnoreSpecTest {
         ModuleIgnoreSpec ignoreSpec = new ModuleIgnoreSpec(moduleIdentifier);
         ignoreSpec.majorUpdates();
 
-        BiPredicate<ModuleIdentifier, FailureAllowedVersion> filter = ignoreSpec.getFilterPredicate();
+        BiPredicate<Dependency, FailureAllowedVersion> filter = ignoreSpec.getFilterPredicate();
 
-        assertFalse(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("+"), false)));
-        assertTrue(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.+"), false)));
-        assertTrue(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.0.+"), false)));
-        assertTrue(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.0.1.+"), false)));
-        assertTrue(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.0.1.1"), false)));
+        DefaultDependency dependency = new DefaultDependency("be.vbgn.gradle", "test123", "1.0.1.1");
+        assertFalse(filter.test(dependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.0.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.0.1.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.0.1.1"), false)));
 
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.1.+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.2.3.+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.2.3.4"), false)));
+        Dependency dynamicDependency = dependency.withVersion("+");
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+
+        dynamicDependency = dependency.withVersion("1.+");
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+
+        dynamicDependency = dependency.withVersion("1.1.+");
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.1.+"), false)));
+
+        dynamicDependency = dependency.withVersion("1.1.2.+");
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.1.+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.1.2.+"), false)));
+
+        DefaultDependency dependency2 = dependency.withGroup("be.vbgn.gradle.test");
+        assertTrue(filter.test(dependency2, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertTrue(filter.test(dependency2, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertTrue(filter.test(dependency2, new FailureAllowedVersion(Version.parse("1.1.+"), false)));
+        assertTrue(filter.test(dependency2, new FailureAllowedVersion(Version.parse("1.2.3.+"), false)));
+        assertTrue(filter.test(dependency2, new FailureAllowedVersion(Version.parse("1.2.3.4"), false)));
 
     }
 
@@ -58,24 +76,39 @@ public class ModuleIgnoreSpecTest {
         ModuleIgnoreSpec ignoreSpec = new ModuleIgnoreSpec(moduleIdentifier);
         ignoreSpec.minorUpdates();
 
-        BiPredicate<ModuleIdentifier, FailureAllowedVersion> filter = ignoreSpec.getFilterPredicate();
+        BiPredicate<Dependency, FailureAllowedVersion> filter = ignoreSpec.getFilterPredicate();
 
-        assertFalse(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("+"), false)));
-        assertFalse(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.+"), false)));
-        assertTrue(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.0.+"), false)));
-        assertTrue(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.0.1.+"), false)));
-        assertTrue(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.0.1.1"), false)));
+        DefaultDependency dependency = new DefaultDependency("be.vbgn.gradle", "test123", "1.0.1.1");
+        assertFalse(filter.test(dependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertFalse(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.0.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.0.1.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.0.1.1"), false)));
 
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.1.+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.2.3.+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.2.3.4"), false)));
+        Dependency dynamicDependency = dependency.withVersion("+");
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+
+        dynamicDependency = dependency.withVersion("1.+");
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+
+        dynamicDependency = dependency.withVersion("1.1.+");
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.1.+"), false)));
+
+        dynamicDependency = dependency.withVersion("1.1.2.+");
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.1.+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.1.2.+"), false)));
+
+        dependency = dependency.withGroup("be.vbgn.gradle.test");
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.1.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.2.3.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.2.3.4"), false)));
     }
 
     @Test
@@ -84,23 +117,40 @@ public class ModuleIgnoreSpecTest {
         ModuleIgnoreSpec ignoreSpec = new ModuleIgnoreSpec(moduleIdentifier);
         ignoreSpec.microUpdates();
 
-        BiPredicate<ModuleIdentifier, FailureAllowedVersion> filter = ignoreSpec.getFilterPredicate();
+        BiPredicate<Dependency, FailureAllowedVersion> filter = ignoreSpec.getFilterPredicate();
 
-        assertFalse(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("+"), false)));
-        assertFalse(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.+"), false)));
-        assertFalse(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.0.+"), false)));
-        assertTrue(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.0.1.+"), false)));
-        assertTrue(filter.test(moduleIdentifier, new FailureAllowedVersion(Version.parse("1.0.1.1"), false)));
+        DefaultDependency dependency = new DefaultDependency("be.vbgn.gradle", "test123", "1.0.1.1");
 
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.1.+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.2.3.+"), false)));
-        assertTrue(filter.test(new DefaultModuleIdentifier("be.vbgn.gradle.test", "test123"),
-                new FailureAllowedVersion(Version.parse("1.2.3.4"), false)));
+        assertFalse(filter.test(dependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertFalse(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertFalse(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.0.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.0.1.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.0.1.1"), false)));
+
+        Dependency dynamicDependency = dependency.withVersion("+");
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+
+        dynamicDependency = dependency.withVersion("1.+");
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+
+        dynamicDependency = dependency.withVersion("1.1.+");
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.1.+"), false)));
+
+        dynamicDependency = dependency.withVersion("1.1.2.+");
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertFalse(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.1.+"), false)));
+        assertTrue(filter.test(dynamicDependency, new FailureAllowedVersion(Version.parse("1.1.2.+"), false)));
+
+        dependency = dependency.withGroup("be.vbgn.gradle.test");
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.1.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.2.3.+"), false)));
+        assertTrue(filter.test(dependency, new FailureAllowedVersion(Version.parse("1.2.3.4"), false)));
     }
+
 }

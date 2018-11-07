@@ -1,5 +1,6 @@
 package be.vbgn.gradle.pluginupdates.dsl.internal;
 
+import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.update.finder.FailureAllowedVersion;
 import be.vbgn.gradle.pluginupdates.version.Version;
 import java.io.Serializable;
@@ -26,29 +27,30 @@ public class ModuleIgnoreSpec extends AbstractIgnoreSpec implements Serializable
         return dependency.getGroup().equals(subject.getGroup()) && dependency.getName().equals(subject.getName());
     }
 
-    private boolean appliesToVersionUpdate(@Nonnull Version version) {
-        if (ignoreModule) {
+    private boolean isVersionIgnored(@Nonnull Version dependencyVersion, @Nonnull Version version) {
+        if (!dependencyVersion.getMajor().hasWildcard() && version.getMajor().hasWildcard() && ignoreMajorUpdates) {
             return true;
         }
-        if (version.getMajor().hasWildcard() && ignoreMajorUpdates) {
+        if (!dependencyVersion.getMinor().hasWildcard() && version.getMinor().hasWildcard() && ignoreMinorUpdates) {
             return true;
         }
-        if (version.getMinor().hasWildcard() && ignoreMinorUpdates) {
-            return true;
-        }
-        return version.getMicro().hasWildcard() && ignoreMicroUpdates;
+        return !dependencyVersion.getMicro().hasWildcard() && version.getMicro().hasWildcard() && ignoreMicroUpdates;
     }
 
     @Nonnull
-    public BiPredicate<ModuleIdentifier, FailureAllowedVersion> getFilterPredicate() {
+    public BiPredicate<Dependency, FailureAllowedVersion> getFilterPredicate() {
         return (dependency, failureAllowedVersion) -> {
             if (!appliesToDependency(dependency)) {
                 return true;
             }
-            boolean ignored = appliesToVersionUpdate(failureAllowedVersion.getVersion());
+            if (ignoreModule) {
+                LOGGER.debug("Ignore rule for module {}: module is ignored", subject);
+                return false;
+            }
+            boolean ignored = isVersionIgnored(dependency.getVersion(), failureAllowedVersion.getVersion());
             if (ignored) {
-                LOGGER.debug("Ignore rule for module {}:{} filtered out version {}", subject.getGroup(),
-                        subject.getName(), failureAllowedVersion.getVersion());
+                LOGGER.debug("Ignore rule for module {}: filtered out version {}", subject,
+                        failureAllowedVersion.getVersion());
             }
             return !ignored;
         };
