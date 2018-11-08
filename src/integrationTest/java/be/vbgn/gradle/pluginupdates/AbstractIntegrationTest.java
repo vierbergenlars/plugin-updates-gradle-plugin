@@ -34,6 +34,7 @@ abstract public class AbstractIntegrationTest {
 
     protected BuildResult buildProject(Path projectFolder, String task) throws IOException {
         FileUtils.copyDirectory(projectFolder.toFile(), testProjectDir.getRoot());
+        System.out.print("Using gradle version " + gradleVersion);
         return GradleRunner.create()
                 .withProjectDir(testProjectDir.getRoot().toPath().resolve("project").toFile())
                 .withGradleVersion(gradleVersion)
