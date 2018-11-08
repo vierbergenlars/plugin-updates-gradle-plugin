@@ -1,0 +1,11 @@
+initscript {
+    repositories {
+        mavenLocal()
+    }
+    dependencies {
+        classpath "be.vbgn.gradle:plugin-updates-plugin:${System.getProperty("pluginVersion")}"
+    }
+
+}
+apply plugin: be.vbgn.gradle.pluginupdates.PluginUpdatesPlugin
+

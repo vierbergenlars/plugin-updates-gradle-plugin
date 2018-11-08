@@ -23,6 +23,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -132,9 +133,21 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
     @Nonnull
     private UpdateCheckerConfigurationImpl getUpdateCheckerConfiguration(@Nonnull Project project) {
         UpdateCheckerConfigurationImpl rootConfiguration = findUpdateCheckerConfiguration(project.getGradle());
+        Gradle gradle = project.getGradle();
+        UpdateCheckerConfigurationImpl settingsConfiguration;
+        try {
+            settingsConfiguration = findUpdateCheckerConfiguration(
+                    ((GradleInternal) gradle).getSettings());
+        } catch (ClassCastException | NoSuchMethodError e) {
+            LOGGER.error(
+                    "Gradle object {} does not implement GradleInternal or does not have a getSettings() method. Plugin update configuration in settings.gradle can not be fetched and will be ignored. {}",
+                    gradle, e);
+
+            settingsConfiguration = new UpdateCheckerConfigurationImpl();
+        }
         UpdateCheckerConfigurationImpl projectConfiguration = findUpdateCheckerConfiguration(project);
 
-        return UpdateCheckerConfigurationImpl.merge(rootConfiguration, projectConfiguration);
+        return UpdateCheckerConfigurationImpl.merge(rootConfiguration, settingsConfiguration, projectConfiguration);
     }
 
     @Nonnull
