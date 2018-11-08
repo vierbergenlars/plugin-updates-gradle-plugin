@@ -55,6 +55,10 @@ gradlePlugin {
             id = "be.vbgn.plugin-updates"
             implementationClass = "be.vbgn.gradle.pluginupdates.PluginUpdatesPlugin"
         }
+        config {
+            id = "be.vbgn.plugin-updates.config"
+            implementationClass = "be.vbgn.gradle.pluginupdates.ConfigurationPlugin"
+        }
     }
 }
 

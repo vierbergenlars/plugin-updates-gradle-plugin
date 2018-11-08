@@ -43,6 +43,8 @@ public class NumberWildcardTest {
         assertFalse(NumberWildcard.empty().hasWildcard());
     }
 
+
+    @Test
     public void wildcardNumber() {
         assertEquals("3+", NumberWildcard.number(3).withWildcard().toString());
         assertEquals("3+", NumberWildcard.wildcard().withNumberComponent(3).toString());
@@ -50,6 +52,70 @@ public class NumberWildcardTest {
         assertTrue(NumberWildcard.number(2).withWildcard().hasNumberComponent());
         assertTrue(NumberWildcard.number(2).withWildcard().hasWildcard());
         assertFalse(NumberWildcard.number(2).withWildcard().isEmpty());
+    }
+
+    @Test
+    public void contains() {
+        /*
+         * x.contains(y)
+         *  x   /  y | number | wildcard | none | both
+         *  number   |        |          |      |
+         *  wildcard |        |          |      |
+         *  none     |        |          |      |
+         *  both     |        |          |      |
+         */
+
+        // number.contains(number)
+        assertTrue(NumberWildcard.number(1).contains(NumberWildcard.number(1))); // 1 contains 1
+        assertFalse(NumberWildcard.number(2).contains(NumberWildcard.number(1))); // 2 does not contain 1
+        // number.contains(wildcard)
+        assertFalse(NumberWildcard.number(1).contains(NumberWildcard.wildcard())); // 1 does not contain +
+        // number.contains(none)
+        assertFalse(NumberWildcard.number(1).contains(NumberWildcard.empty())); // 1 does not contain empty
+        // number.contains(both)
+        assertFalse(
+                NumberWildcard.number(1).contains(NumberWildcard.number(1).withWildcard())); // 1 does not contain 1+
+        assertFalse(
+                NumberWildcard.number(2).contains(NumberWildcard.number(1).withWildcard())); // 2 does not contain 1+
+
+        // wildcard.contains(number)
+        assertTrue(NumberWildcard.wildcard().contains(NumberWildcard.number(1))); // + contains 1
+        // wildcard.contains(wildcard)
+        assertTrue(NumberWildcard.wildcard().contains(NumberWildcard.wildcard())); // + contains +
+        // wildcard.contains(none)
+        assertFalse(NumberWildcard.wildcard().contains(NumberWildcard.empty())); // + does not contain empty
+        // wildcard.contains(both)
+        assertTrue(NumberWildcard.wildcard().contains(NumberWildcard.number(1).withWildcard())); // + contains 1+
+
+        // none.contains(number)
+        assertFalse(NumberWildcard.empty().contains(NumberWildcard.number(1))); // empty does not contain 1
+        // none.contains(wildcard)
+        assertFalse(NumberWildcard.empty().contains(NumberWildcard.wildcard())); // empty does not contain +
+        // none.contains(none)
+        assertTrue(NumberWildcard.empty().contains(NumberWildcard.empty())); // empty contains empty
+        // none.contains(both)
+        assertFalse(NumberWildcard.empty()
+                .contains(NumberWildcard.wildcard().withNumberComponent(1))); // empty does not contain 1+
+
+        // both.contains(number)
+        assertTrue(NumberWildcard.number(1).withWildcard().contains(NumberWildcard.number(1))); // 1+ contains 1
+        assertTrue(NumberWildcard.number(1).withWildcard().contains(NumberWildcard.number(2))); // 1+ contains 2
+        assertFalse(
+                NumberWildcard.number(2).withWildcard().contains(NumberWildcard.number(1))); // 2+ does not contain 1
+        // both.contains(wildcard)
+        assertFalse(
+                NumberWildcard.number(1).withWildcard().contains(NumberWildcard.wildcard())); // 1+ does not contain +
+        // both.contains(none)
+        assertFalse(NumberWildcard.wildcard().withNumberComponent(1)
+                .contains((NumberWildcard.empty()))); // 1+ does not contain empty
+        // both.contains(both)
+        assertTrue(NumberWildcard.wildcard().withNumberComponent(1)
+                .contains(NumberWildcard.wildcard().withNumberComponent(1))); // 1+ contains 1+
+        assertFalse(NumberWildcard.wildcard().withNumberComponent(2)
+                .contains(NumberWildcard.wildcard().withNumberComponent(1))); // 2+ does not contain 1+
+        assertTrue(NumberWildcard.wildcard().withNumberComponent(1)
+                .contains(NumberWildcard.wildcard().withNumberComponent(2))); // 1+ contains 2+
+
     }
 
     @Test

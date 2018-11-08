@@ -4,10 +4,6 @@ import be.vbgn.gradle.pluginupdates.dependency.DefaultDependency;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
-import be.vbgn.gradle.pluginupdates.version.NumberWildcard;
-import be.vbgn.gradle.pluginupdates.version.Version;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.gradle.api.Project;
@@ -28,32 +24,34 @@ public class DefaultUpdateFinder implements UpdateFinder {
     @Nonnull
     private ConfigurationContainer configurationContainer;
 
-    public DefaultUpdateFinder(@Nonnull ScriptHandler scriptHandler) {
-        this(scriptHandler.getDependencies(), scriptHandler.getConfigurations());
+    @Nonnull
+    private VersionProvider versionProvider;
+
+    public DefaultUpdateFinder(@Nonnull ScriptHandler scriptHandler, @Nonnull VersionProvider versionProvider) {
+        this(scriptHandler.getDependencies(), scriptHandler.getConfigurations(), versionProvider);
     }
 
-    public DefaultUpdateFinder(@Nonnull Project project) {
-        this(project.getDependencies(), project.getConfigurations());
+    public DefaultUpdateFinder(@Nonnull Project project, @Nonnull VersionProvider versionProvider) {
+        this(project.getDependencies(), project.getConfigurations(), versionProvider);
     }
 
     public DefaultUpdateFinder(@Nonnull DependencyHandler dependencyHandler,
-            @Nonnull ConfigurationContainer configurationContainer) {
+            @Nonnull ConfigurationContainer configurationContainer, @Nonnull VersionProvider versionProvider) {
         this.dependencyHandler = dependencyHandler;
         this.configurationContainer = configurationContainer;
+        this.versionProvider = versionProvider;
     }
 
 
     @Override
     @Nonnull
     public Stream<Dependency> findUpdates(@Nonnull Dependency dependency) {
-        Version dependencyVersion = dependency.getVersion();
-
-        return generateVersionConstraints(dependencyVersion)
+        return this.versionProvider.getUpdateVersions(dependency)
                 .flatMap(failureAllowedVersion -> {
-                    Dependency toLookup = dependency.withVersion(failureAllowedVersion.version);
+                    Dependency toLookup = dependency.withVersion(failureAllowedVersion.getVersion());
                     Stream<Dependency> resolvedDependencies = resolveDependency(toLookup);
 
-                    if (!failureAllowedVersion.failureAllowed) {
+                    if (!failureAllowedVersion.isFailureAllowed()) {
                         return resolvedDependencies;
                     }
                     // If failure of a version is allowed, filter out all failed dependencies as if they were never asked for
@@ -75,26 +73,6 @@ public class DefaultUpdateFinder implements UpdateFinder {
                 });
     }
 
-    @Nonnull
-    private Stream<FailureAllowedVersion> generateVersionConstraints(@Nonnull Version version) {
-        LOGGER.debug("Generating update constraints for version {}", version);
-        NumberWildcard wildcard = NumberWildcard.wildcard();
-        Set<FailureAllowedVersion> versions = new HashSet<>();
-        versions.add(new FailureAllowedVersion(version.withMajor(wildcard), version.getMajor().isEmpty()));
-        if (!version.getMajor().isEmpty()) {
-            versions.add(new FailureAllowedVersion(version.withMinor(wildcard), version.getMinor().isEmpty()));
-        }
-        if (!version.getMinor().isEmpty()) {
-            versions.add(new FailureAllowedVersion(version.withMicro(wildcard), version.getMicro().isEmpty()));
-        }
-        if (!version.getMicro().isEmpty()) {
-            versions.add(new FailureAllowedVersion(version.withPatch(wildcard), version.getPatch().isEmpty()));
-        }
-        return versions.stream()
-                .distinct()
-                .peek(version1 -> LOGGER.debug("Update constraint: {}, failure allowed: {}", version1.version,
-                        version1.failureAllowed));
-    }
 
     @Nonnull
     private Stream<Dependency> resolveDependency(@Nonnull Dependency dependency) {
@@ -118,14 +96,4 @@ public class DefaultUpdateFinder implements UpdateFinder {
                 .peek(dependency1 -> LOGGER.debug("Resolved dependency {} to {}", dependency, dependency1));
     }
 
-    private static class FailureAllowedVersion {
-
-        private Version version;
-        private boolean failureAllowed;
-
-        private FailureAllowedVersion(Version version, boolean failureAllowed) {
-            this.version = version;
-            this.failureAllowed = failureAllowed;
-        }
-    }
 }

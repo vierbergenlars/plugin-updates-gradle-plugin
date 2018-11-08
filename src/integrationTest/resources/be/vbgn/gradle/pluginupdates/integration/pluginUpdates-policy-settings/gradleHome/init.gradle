@@ -8,3 +8,4 @@ initscript {
 
 }
 apply plugin: be.vbgn.gradle.pluginupdates.PluginUpdatesPlugin
+

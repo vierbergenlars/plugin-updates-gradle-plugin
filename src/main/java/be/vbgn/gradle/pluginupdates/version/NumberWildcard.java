@@ -87,6 +87,32 @@ public class NumberWildcard implements Comparable<NumberWildcard> {
         return (hasNumberComponent() ? getNumberComponent() : "") + (hasWildcard() ? "+" : "");
     }
 
+    public boolean contains(@Nonnull NumberWildcard other) {
+        if (this.equals(other)) {
+            return true;
+        }
+        if (this.isEmpty() ^ other.isEmpty()) {
+            return false;
+        }
+        if (this.hasWildcard()) {
+            if (!this.hasNumberComponent()) {
+                return true;
+            } else if (other.hasNumberComponent()) {
+                return this.getNumberComponent() <= other.getNumberComponent();
+            } else {
+                return false;
+            }
+        } else {
+            if (other.hasWildcard()) {
+                return false;
+            }
+            if (this.hasNumberComponent() && other.hasNumberComponent()) {
+                return this.getNumberComponent() == other.getNumberComponent();
+            }
+        }
+        return false;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

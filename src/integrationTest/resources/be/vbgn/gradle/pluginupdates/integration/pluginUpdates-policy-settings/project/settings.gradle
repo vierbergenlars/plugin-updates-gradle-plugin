@@ -1,0 +1,22 @@
+buildscript {
+    repositories {
+        mavenLocal()
+    }
+    dependencies {
+        classpath "be.vbgn.gradle:plugin-updates-plugin:${System.getProperty("pluginVersion")}"
+    }
+
+}
+rootProject.name = 'pluginUpdates-policy'
+
+apply plugin: "be.vbgn.plugin-updates.config"
+
+pluginUpdates {
+    policy {
+        rename "eu.xenit.alfresco:eu.xenit.alfresco.gradle.plugin" to "org.gradle.hello-world:org.gradle.hello-world.gradle.plugin"
+        ignore "org.gradle.hello-world:org.gradle.hello-world.gradle.plugin" majorUpdates()
+
+        rename "eu.xenit.gradle:alfresco-sdk" to "org.gradle:gradle-hello-world-plugin"
+        ignore "org.gradle:gradle-hello-world-plugin" majorUpdates()
+    }
+}

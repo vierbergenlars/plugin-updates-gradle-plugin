@@ -22,7 +22,7 @@ abstract public class AbstractIntegrationTest {
     @Parameters
     public static Collection<Object[]> testData() {
         return Arrays.asList(new Object[][]{
-                {"4.10"}, {"4.0"}, {"3.2.1"}
+                {"4.10"}, {"4.4"}, {"4.3"}, {"4.0"}, {"3.2.1"}
         });
     }
 
@@ -34,6 +34,7 @@ abstract public class AbstractIntegrationTest {
 
     protected BuildResult buildProject(Path projectFolder, String task) throws IOException {
         FileUtils.copyDirectory(projectFolder.toFile(), testProjectDir.getRoot());
+        System.out.print("Using gradle version " + gradleVersion);
         return GradleRunner.create()
                 .withProjectDir(testProjectDir.getRoot().toPath().resolve("project").toFile())
                 .withGradleVersion(gradleVersion)

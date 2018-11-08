@@ -2,6 +2,8 @@ package be.vbgn.gradle.pluginupdates.version;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -121,6 +123,29 @@ public class VersionTest {
         assertEquals("1.+", Version.parse("1.+").toString());
         assertEquals("1+", Version.parse("1+").toString());
         assertEquals("1", Version.parse("1").toString());
+    }
+
+    @Test
+    public void matches() {
+        assertTrue(Version.parse("+").matches(Version.parse("1.2.3")));
+        assertTrue(Version.parse("1+").matches(Version.parse("1.2.3")));
+        assertFalse(Version.parse("1").matches(Version.parse("1.2.3")));
+        assertTrue(Version.parse("1+").matches(Version.parse("2.2.3")));
+        assertTrue(Version.parse("1.+").matches(Version.parse("1.2.3")));
+        assertFalse(Version.parse("1.+").matches(Version.parse("2.2.3")));
+        assertFalse(Version.parse("2+").matches(Version.parse("1.2.3")));
+        assertFalse(Version.parse("1.2").matches(Version.parse("1.2.3")));
+        assertTrue(Version.parse("1.2+").matches(Version.parse("1.2.3")));
+        assertTrue(Version.parse("1.1+").matches(Version.parse("1.2.3")));
+        assertFalse(Version.parse("1.3+").matches(Version.parse("1.2.3")));
+        assertTrue(Version.parse("1.2.+").matches(Version.parse("1.2.3")));
+        assertFalse(Version.parse("1.1.+").matches(Version.parse("1.2.3")));
+        assertTrue(Version.parse("1.2.1+").matches(Version.parse("1.2.3")));
+        assertTrue(Version.parse("1.2.3+").matches(Version.parse("1.2.3")));
+        assertTrue(Version.parse("1.2.3").matches(Version.parse("1.2.3")));
+        assertFalse(Version.parse("1.2.1").matches(Version.parse("1.2.3")));
+        assertTrue(Version.parse("1.2.3+").matches(Version.parse("1.2.3")));
+        assertFalse(Version.parse("1.2.3.+").matches(Version.parse("1.2.3")));
     }
 
     @Test

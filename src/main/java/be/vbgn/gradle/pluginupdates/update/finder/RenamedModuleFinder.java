@@ -2,10 +2,10 @@ package be.vbgn.gradle.pluginupdates.update.finder;
 
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.version.Version;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -14,11 +14,11 @@ public class RenamedModuleFinder implements UpdateFinder {
     @Nonnull
     private UpdateFinder updateFinder;
     @Nonnull
-    private Transformer<Dependency, Dependency> renames;
+    private UnaryOperator<Dependency> renames;
     private static Logger LOGGER = Logging.getLogger(RenamedModuleFinder.class);
 
     public RenamedModuleFinder(@Nonnull UpdateFinder updateFinder,
-            @Nonnull Transformer<Dependency, Dependency> renames) {
+            @Nonnull UnaryOperator<Dependency> renames) {
         this.updateFinder = updateFinder;
         this.renames = renames;
     }
@@ -27,9 +27,9 @@ public class RenamedModuleFinder implements UpdateFinder {
     @Nonnull
     public Stream<Dependency> findUpdates(@Nonnull Dependency dependency) {
         DependencyImpl dependencyWrapper = new DependencyImpl(dependency, false);
-        Dependency transformed = renames.transform(dependencyWrapper);
+        Dependency transformed = renames.apply(dependencyWrapper);
         boolean withVersionCalled =
-                (transformed instanceof DependencyImpl) ? ((DependencyImpl) transformed).withVersionCalled : true;
+                (!(transformed instanceof DependencyImpl)) || ((DependencyImpl) transformed).withVersionCalled;
         // Unwrap transformed version from wrapper
         transformed = transformed instanceof DependencyImpl ? ((DependencyImpl) transformed).child : transformed;
         boolean coordinatesChanged = !dependency.getGroup().equals(transformed.getGroup()) || !dependency.getName()
