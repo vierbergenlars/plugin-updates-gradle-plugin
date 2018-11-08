@@ -9,6 +9,7 @@ import be.vbgn.gradle.pluginupdates.update.finder.DefaultVersionProvider;
 import be.vbgn.gradle.pluginupdates.update.finder.UpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
 import be.vbgn.gradle.pluginupdates.update.formatter.DefaultUpdateFormatter;
+import be.vbgn.gradle.pluginupdates.update.formatter.PluginUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.UpdateFormatter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -108,7 +109,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
     private void runBuildscriptUpdateCheck(@Nonnull Project project) {
         try {
             UpdateCheckerConfigurationImpl checkerConfiguration = getUpdateCheckerConfiguration(project);
-            UpdateFormatter updateFormatter = new DefaultUpdateFormatter();
+            UpdateFormatter updateFormatter = new PluginUpdateFormatter(new DefaultUpdateFormatter());
 
             UpdateBuilder updateBuilder = checkerConfiguration.getPolicy();
 
