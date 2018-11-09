@@ -23,7 +23,7 @@ public class IntegrationTest extends AbstractIntegrationTest {
 
         assertOutputContainsOneOf(buildResult,
                 "Plugin is outdated in project ':subproject': org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]",
-                "Plugin is outdated in project ':subproject': org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:[0.1 -> 0.2]");
+                "Plugin is outdated in project ':subproject': id 'org.gradle.hello-world' version '[0.1 -> 0.2]'");
 
     }
 
@@ -53,7 +53,7 @@ public class IntegrationTest extends AbstractIntegrationTest {
         assertEquals("There should only be one outdated plugin message", 1, pluginOutdatedLines.size());
         assertOutputContainsOneOf(buildResult,
                 "Plugin is outdated in root project 'settings-plugin': org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]",
-                "Plugin is outdated in root project 'settings-plugin': org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:[0.1 -> 0.2]");
+                "Plugin is outdated in root project 'settings-plugin': id 'org.gradle.hello-world' version '[0.1 -> 0.2]'");
     }
 
     @Test
@@ -71,7 +71,7 @@ public class IntegrationTest extends AbstractIntegrationTest {
         assertEquals("There should only be one outdated plugin message", 1, pluginOutdatedLines.size());
         assertOutputContainsOneOf(buildResult,
                 "Plugin is outdated in root project 'pluginUpdates-policy': [eu.xenit.gradle:alfresco-sdk:0.1.3 -> org.gradle:gradle-hello-world-plugin:0.2]",
-                "Plugin is outdated in root project 'pluginUpdates-policy': [eu.xenit.alfresco:eu.xenit.alfresco.gradle.plugin:0.1.3 -> org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:0.2]"
+                "Plugin is outdated in root project 'pluginUpdates-policy': [id 'eu.xenit.alfresco' version '0.1.3' -> id 'org.gradle.hello-world' version '0.2']"
         );
     }
 
@@ -91,7 +91,7 @@ public class IntegrationTest extends AbstractIntegrationTest {
         assertEquals("There should only be one outdated plugin message", 1, pluginOutdatedLines.size());
         assertOutputContainsOneOf(buildResult,
                 "Plugin is outdated in root project 'pluginUpdates-policy': [eu.xenit.gradle:alfresco-sdk:0.1.3 -> org.gradle:gradle-hello-world-plugin:0.2]",
-                "Plugin is outdated in root project 'pluginUpdates-policy': [eu.xenit.alfresco:eu.xenit.alfresco.gradle.plugin:0.1.3 -> org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:0.2]"
+                "Plugin is outdated in root project 'pluginUpdates-policy': [id 'eu.xenit.alfresco' version '0.1.3' -> id 'org.gradle.hello-world' version '0.2']"
         );
 
     }
@@ -114,7 +114,7 @@ public class IntegrationTest extends AbstractIntegrationTest {
             assertEquals("There should only be one outdated plugin message", 1, pluginOutdatedLines.size());
             assertOutputContainsOneOf(buildResult,
                     "Plugin is outdated in root project 'pluginUpdates-policy': [eu.xenit.gradle:alfresco-sdk:0.1.3 -> org.gradle:gradle-hello-world-plugin:0.2]",
-                    "Plugin is outdated in root project 'pluginUpdates-policy': [eu.xenit.alfresco:eu.xenit.alfresco.gradle.plugin:0.1.3 -> org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:0.2]"
+                    "Plugin is outdated in root project 'pluginUpdates-policy': [id 'eu.xenit.alfresco' version '0.1.3' -> id 'org.gradle.hello-world' version '0.2']"
             );
         } else {
             assertOutputContainsOneOf(buildResult,

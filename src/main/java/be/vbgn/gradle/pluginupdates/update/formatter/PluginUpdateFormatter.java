@@ -24,7 +24,7 @@ public class PluginUpdateFormatter implements UpdateFormatter {
             return fallbackFormatter.format(update);
         }
         if(keepsSameCoordinates(update)) {
-            String versionUpdate = update.getUpdates().stream()
+            String versionUpdate = Stream.concat(Stream.of(update.getOriginal()), update.getUpdates().stream())
                     .map(Dependency::getVersion)
                     .map(Version::toString)
                     .collect(Collectors.joining(" -> "));
