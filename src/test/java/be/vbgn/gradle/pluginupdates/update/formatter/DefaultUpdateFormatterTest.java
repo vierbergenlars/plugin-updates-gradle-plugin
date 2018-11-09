@@ -129,4 +129,19 @@ public class DefaultUpdateFormatterTest {
         assertEquals("be.vbgn.test:test1:[0.5.6 -> 0.5.6:shaded -> 1.0.0]",
                 formatter.format(update));
     }
+
+    @Test
+    public void formatRepeatingChange() {
+        Dependency original = new DefaultDependency("be.vbgn.test", "test1", "0.5.6");
+        List<Dependency> updates = new LinkedList<>();
+        updates.add(original);
+        updates.add(original.withVersion("0.6.0"));
+        updates.add(original.withVersion("0.6.0"));
+        updates.add(original.withVersion("1.0.0"));
+        Update update = new UpdateImpl(original, updates);
+
+        UpdateFormatter formatter = new DefaultUpdateFormatter();
+
+        assertEquals("be.vbgn.test:test1:[0.5.6 -> 0.6.0 -> 1.0.0]", formatter.format(update));
+    }
 }

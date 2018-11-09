@@ -6,38 +6,18 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class PluginUpdatesPluginIntegrationTest {
+public class PluginUpdatesPluginIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule
-    public final TemporaryFolder testProjectDir = new TemporaryFolder();
     private File buildFile;
     private File settingsFile;
-
-    @Parameters
-    public static Collection<Object[]> testData() {
-        return Arrays.asList(new Object[][]{
-                {"4.10"}, {"4.0"}, {"3.2.1"}
-        });
-    }
-
-    private String gradleVersion;
-
-    public PluginUpdatesPluginIntegrationTest(String gradleVersion) {
-        this.gradleVersion = gradleVersion;
-    }
 
     @Before
     public void setup() throws IOException {
@@ -61,17 +41,10 @@ public class PluginUpdatesPluginIntegrationTest {
                 .withArguments("clean")
                 .build();
 
-        String[] expectedMessages = {
-                "Plugin is outdated in root project 'test-project': org.gradle.hello-world:org.gradle.hello-world.gradle.plugin:[0.1 -> 0.2]",
+        assertOutputContainsOneOf(buildResult,
+                "Plugin is outdated in root project 'test-project': id 'org.gradle.hello-world' version '[0.1 -> 0.2]'",
                 "Plugin is outdated in root project 'test-project': org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]"
-        };
-
-        boolean matched = false;
-        for (String expectedMessage : expectedMessages) {
-            matched |= buildResult.getOutput().contains(expectedMessage);
-        }
-        assertTrue(matched);
-
+        );
     }
 
     @Test

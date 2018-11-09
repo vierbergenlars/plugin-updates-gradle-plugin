@@ -124,3 +124,15 @@ pluginUpdates {
     }
 }
 ```
+
+# Development
+
+## Creating a release
+
+Every git tag is automatically published to the gradle plugins repository by Travis-CI.
+
+This plugin follows SemVer and tags are managed with Reckon.
+
+To create a release from a commit, use `./gradlew reckonTagPush -Preckon.scope=patch -Preckon.stage=final` to create a new patch release.
+
+Tests are required to pass before a new release can be tagged.
