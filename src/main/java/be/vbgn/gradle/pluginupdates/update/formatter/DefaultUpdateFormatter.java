@@ -6,6 +6,8 @@ import be.vbgn.gradle.pluginupdates.update.Update;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.gradle.api.Transformer;
 
@@ -61,11 +63,10 @@ public class DefaultUpdateFormatter implements UpdateFormatter {
                         separateParts.transform(dependency) + (dependency.getClassifier().isEmpty() ? ""
                                 : ":" + dependency.getClassifier());
             }
-            formatted += "[";
-            formatted += updates.stream()
+            formatted += Stream.concat(Stream.of(original), updates.stream())
                     .map(separatePartsTransformer::transform)
-                    .reduce(separatePartsTransformer.transform(original), (a, b) -> a + " -> " + b);
-            formatted += "]";
+                    .distinct()
+                    .collect(Collectors.joining(" -> ", "[", "]"));
             if (!changesClassifier && !original.getClassifier().isEmpty()) {
                 formatted += ":" + original.getClassifier();
             }

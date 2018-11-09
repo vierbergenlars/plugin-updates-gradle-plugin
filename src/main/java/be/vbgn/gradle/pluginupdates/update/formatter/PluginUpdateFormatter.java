@@ -27,11 +27,13 @@ public class PluginUpdateFormatter implements UpdateFormatter {
             String versionUpdate = Stream.concat(Stream.of(update.getOriginal()), update.getUpdates().stream())
                     .map(Dependency::getVersion)
                     .map(Version::toString)
+                    .distinct()
                     .collect(Collectors.joining(" -> "));
             return "id '"+original.getGroup()+"' version '["+versionUpdate+"]'";
         } else if(update.getUpdates().stream().allMatch(PluginUpdateFormatter::isPluginIdentifier)){
             return Stream.concat(Stream.of(update.getOriginal()), update.getUpdates().stream())
                     .map(dependency -> "id '"+dependency.getGroup()+"' version '"+dependency.getVersion().toString()+"'")
+                    .distinct()
                     .collect(Collectors.joining(" -> ", "[", "]"));
         }
 
