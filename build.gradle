@@ -71,6 +71,9 @@ pluginBundle {
         pluginUpdates {
             displayName = "Plugin updates plugin"
         }
+        config {
+            displayName = "Plugin updates plugin configuration"
+        }
     }
 }
 
