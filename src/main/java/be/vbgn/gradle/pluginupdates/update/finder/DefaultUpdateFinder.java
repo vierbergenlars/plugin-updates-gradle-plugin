@@ -1,5 +1,6 @@
 package be.vbgn.gradle.pluginupdates.update.finder;
 
+import be.vbgn.gradle.pluginupdates.StreamUtil;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultDependency;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
@@ -46,7 +47,7 @@ public class DefaultUpdateFinder implements UpdateFinder {
     @Override
     @Nonnull
     public Stream<Dependency> findUpdates(@Nonnull Dependency dependency) {
-        return this.versionProvider.getUpdateVersions(dependency)
+        return StreamUtil.parallelIfNoDebug(this.versionProvider.getUpdateVersions(dependency))
                 .flatMap(failureAllowedVersion -> {
                     Dependency toLookup = dependency.withVersion(failureAllowedVersion.getVersion());
                     Stream<Dependency> resolvedDependencies = resolveDependency(toLookup);
