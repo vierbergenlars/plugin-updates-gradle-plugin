@@ -1,8 +1,9 @@
 package be.vbgn.gradle.pluginupdates.version;
 
+import java.io.Serializable;
 import javax.annotation.Nonnull;
 
-public class NumberWildcard implements Comparable<NumberWildcard> {
+public class NumberWildcard implements Comparable<NumberWildcard>, Serializable {
 
     private final static NumberWildcard WILDCARD = new NumberWildcard(-1, true);
     private final static NumberWildcard EMPTY = new NumberWildcard(-1, false);

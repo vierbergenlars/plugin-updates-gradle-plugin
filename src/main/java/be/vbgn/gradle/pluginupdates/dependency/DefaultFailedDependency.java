@@ -2,15 +2,16 @@ package be.vbgn.gradle.pluginupdates.dependency;
 
 import java.util.Objects;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.gradle.api.artifacts.UnresolvedDependency;
 
 public class DefaultFailedDependency extends DefaultDependency implements FailedDependency {
 
-    @Nonnull
+    @Nullable
     private Throwable problem;
 
     public DefaultFailedDependency(@Nonnull String group, @Nonnull String name, @Nonnull String version,
-            @Nonnull Throwable problem) {
+            @Nullable Throwable problem) {
         super(group, name, version);
         this.problem = problem;
     }
@@ -23,7 +24,7 @@ public class DefaultFailedDependency extends DefaultDependency implements Failed
     }
 
     @Override
-    @Nonnull
+    @Nullable
     public Throwable getProblem() {
         return problem;
     }

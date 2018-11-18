@@ -8,6 +8,7 @@ import be.vbgn.gradle.pluginupdates.update.finder.DefaultUpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.DefaultVersionProvider;
 import be.vbgn.gradle.pluginupdates.update.finder.UpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
+import be.vbgn.gradle.pluginupdates.update.finder.internal.InvalidResolvesCache;
 import be.vbgn.gradle.pluginupdates.update.formatter.DefaultUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.PluginUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.UpdateFormatter;
@@ -29,6 +30,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.cache.CacheRepository;
 import org.gradle.util.GradleVersion;
 
 public class PluginUpdatesPlugin implements Plugin<PluginAware> {
@@ -113,9 +115,24 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
 
             UpdateBuilder updateBuilder = checkerConfiguration.getPolicy();
 
+            CacheRepository cacheRepository = ((GradleInternal) project.getGradle()).getServices()
+                    .get(CacheRepository.class);
+            InvalidResolvesCache invalidResolvesCache = null;
+            try {
+                invalidResolvesCache = new InvalidResolvesCache(cacheRepository);
+            } catch (NoClassDefFoundError e) {
+                LOGGER.warn(
+                        "Some required gradle classes are missing. Invalid resolves cache is disabled, which will slow down plugin update checks.");
+                LOGGER.debug("Full exception for above warning", e);
+            }
+
             VersionProvider versionProvider = updateBuilder.buildVersionProvider(new DefaultVersionProvider());
-            UpdateFinder updateFinder = updateBuilder
-                    .buildUpdateFinder(new DefaultUpdateFinder(project.getBuildscript(), versionProvider));
+            DefaultUpdateFinder defaultUpdateFinder = new DefaultUpdateFinder(project.getBuildscript(),
+                    versionProvider);
+            if (invalidResolvesCache != null) {
+                defaultUpdateFinder.setInvalidResolvesCache(invalidResolvesCache);
+            }
+            UpdateFinder updateFinder = updateBuilder.buildUpdateFinder(defaultUpdateFinder);
 
             DefaultUpdateChecker updateChecker = new DefaultUpdateChecker(updateFinder);
 
@@ -125,6 +142,9 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
                         LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
                                 .format(update));
                     });
+            if(invalidResolvesCache != null) {
+                invalidResolvesCache.close();
+            }
         } catch (Throwable e) {
             LOGGER.error("Plugin update check failed.", e);
         }
