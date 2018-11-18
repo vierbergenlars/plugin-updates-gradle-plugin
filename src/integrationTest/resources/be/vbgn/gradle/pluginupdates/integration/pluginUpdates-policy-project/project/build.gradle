@@ -16,6 +16,7 @@ apply plugin: "be.vbgn.plugin-updates.config"
 
 pluginUpdates {
     policy {
+        ignore "be.vbgn.gradle:plugin-updates-plugin"
         rename "eu.xenit.alfresco:eu.xenit.alfresco.gradle.plugin" to "org.gradle.hello-world:org.gradle.hello-world.gradle.plugin"
         ignore "org.gradle.hello-world:org.gradle.hello-world.gradle.plugin" majorUpdates()
 

@@ -12,3 +12,9 @@ plugins {
     id "org.gradle.hello-world" version "0.1"
 }
 apply plugin: be.vbgn.gradle.pluginupdates.PluginUpdatesPlugin
+
+pluginUpdates {
+    policy {
+        ignore "be.vbgn.gradle:plugin-updates-plugin"
+    }
+}
