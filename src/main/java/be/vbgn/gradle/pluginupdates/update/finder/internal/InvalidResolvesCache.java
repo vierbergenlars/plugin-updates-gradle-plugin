@@ -1,4 +1,4 @@
-package be.vbgn.gradle.pluginupdates.internal.cache;
+package be.vbgn.gradle.pluginupdates.update.finder.internal;
 
 import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheBuilder.LockTarget;
 import org.gradle.cache.CacheRepository;
@@ -18,6 +20,8 @@ import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 
 public class InvalidResolvesCache implements AutoCloseable {
+
+    private static final Logger LOGGER = Logging.getLogger(InvalidResolvesCache.class);
     private CacheBuilder cacheBuilder;
 
     private PersistentCache openedCache;
@@ -34,11 +38,13 @@ public class InvalidResolvesCache implements AutoCloseable {
     private synchronized void openCache() {
         if(openedCache == null) {
             openedCache = cacheBuilder.open();
+            LOGGER.debug("Opened cache {}", openedCache);
         }
         if(persistentIndexedCache == null) {
             persistentIndexedCache = openedCache.createCache(PersistentIndexedCacheParameters.of("invalidResolves",
                             BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER,
                             BaseSerializerFactory.THROWABLE_SERIALIZER));
+            LOGGER.debug("Opened indexed cache {}", persistentIndexedCache);
         }
     }
 
@@ -57,6 +63,7 @@ public class InvalidResolvesCache implements AutoCloseable {
     }
 
     public void put(FailedDependency failedDependency) {
+        LOGGER.debug("Adding failed dependency {} to cache", failedDependency);
         withCache((cache) -> {
              cache.put(failedDependency.toDependencyNotation(), failedDependency.getProblem());
              return null;
@@ -66,8 +73,10 @@ public class InvalidResolvesCache implements AutoCloseable {
     public Optional<FailedDependency> get(Dependency dependency) {
         Throwable error = withCache((cache) -> cache.get(dependency.toDependencyNotation()));
         if(error == null) {
+            LOGGER.debug("Could not find failed dependency for {} in cache", dependency);
             return Optional.empty();
         }
+        LOGGER.debug("Found failed dependency for {} in cache: {}", dependency, error);
         return Optional.of(new DefaultFailedDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion().toString(), error));
     }
 

@@ -2,15 +2,13 @@ package be.vbgn.gradle.pluginupdates;
 
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateBuilder;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerConfigurationImpl;
-import be.vbgn.gradle.pluginupdates.internal.cache.InvalidResolvesCache;
 import be.vbgn.gradle.pluginupdates.update.Update;
 import be.vbgn.gradle.pluginupdates.update.checker.DefaultUpdateChecker;
 import be.vbgn.gradle.pluginupdates.update.finder.DefaultUpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.DefaultVersionProvider;
-import be.vbgn.gradle.pluginupdates.update.finder.FailedVersionsCachingFinder;
-import be.vbgn.gradle.pluginupdates.update.finder.FailedVersionsCachingVersionProvider;
 import be.vbgn.gradle.pluginupdates.update.finder.UpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
+import be.vbgn.gradle.pluginupdates.update.finder.internal.InvalidResolvesCache;
 import be.vbgn.gradle.pluginupdates.update.formatter.DefaultUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.PluginUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.UpdateFormatter;
@@ -122,11 +120,11 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
 
             try (InvalidResolvesCache invalidResolvesCache = new InvalidResolvesCache(cacheRepository)) {
 
-                VersionProvider versionProvider = new FailedVersionsCachingVersionProvider(
-                        updateBuilder.buildVersionProvider(new DefaultVersionProvider()), invalidResolvesCache);
-                UpdateFinder updateFinder = new FailedVersionsCachingFinder(updateBuilder
-                        .buildUpdateFinder(new DefaultUpdateFinder(project.getBuildscript(), versionProvider)),
-                        invalidResolvesCache);
+                VersionProvider versionProvider = updateBuilder.buildVersionProvider(new DefaultVersionProvider());
+                DefaultUpdateFinder defaultUpdateFinder = new DefaultUpdateFinder(project.getBuildscript(),
+                        versionProvider);
+                defaultUpdateFinder.setInvalidResolvesCache(invalidResolvesCache);
+                UpdateFinder updateFinder = updateBuilder.buildUpdateFinder(defaultUpdateFinder);
 
                 DefaultUpdateChecker updateChecker = new DefaultUpdateChecker(updateFinder);
 
