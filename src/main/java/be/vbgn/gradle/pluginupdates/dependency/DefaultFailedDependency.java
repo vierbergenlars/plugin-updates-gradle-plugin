@@ -11,7 +11,7 @@ public class DefaultFailedDependency extends DefaultDependency implements Failed
     private Throwable problem;
 
     public DefaultFailedDependency(@Nonnull String group, @Nonnull String name, @Nonnull String version,
-            @Nonnull Throwable problem) {
+            @Nullable Throwable problem) {
         super(group, name, version);
         this.problem = problem;
     }

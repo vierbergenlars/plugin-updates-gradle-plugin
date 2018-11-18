@@ -56,7 +56,8 @@ public class DefaultUpdateFinder implements UpdateFinder {
         return StreamUtil.parallelIfNoDebug(this.versionProvider.getUpdateVersions(dependency))
                 .flatMap(failureAllowedVersion -> {
                     Dependency toLookup = dependency.withVersion(failureAllowedVersion.getVersion());
-                    Stream<Dependency> resolvedDependencies = resolveDependency(toLookup);
+                    Stream<Dependency> resolvedDependencies = resolveDependency(toLookup,
+                            failureAllowedVersion.isFailureAllowed());
 
                     if (!failureAllowedVersion.isFailureAllowed()) {
                         return resolvedDependencies;
@@ -80,8 +81,8 @@ public class DefaultUpdateFinder implements UpdateFinder {
                 });
     }
 
-    private Stream<Dependency> resolveDependency(@Nonnull Dependency dependency) {
-        if (invalidResolvesCache != null) {
+    private Stream<Dependency> resolveDependency(@Nonnull Dependency dependency, boolean failureAllowed) {
+        if (failureAllowed && invalidResolvesCache != null) {
             Optional<FailedDependency> failedDependencyOptional = invalidResolvesCache.get(dependency);
             if (failedDependencyOptional.isPresent()) {
                 LOGGER.trace("Found failed dependency in cache. Using failed dependency {}",
