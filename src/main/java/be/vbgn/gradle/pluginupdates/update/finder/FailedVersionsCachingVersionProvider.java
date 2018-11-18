@@ -4,8 +4,12 @@ import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.internal.cache.InvalidResolvesCache;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 public class FailedVersionsCachingVersionProvider implements VersionProvider {
+
+    private static final Logger LOGGER = Logging.getLogger(FailedVersionsCachingVersionProvider.class);
 
     private VersionProvider versionProvider;
     private InvalidResolvesCache cache;
@@ -24,7 +28,14 @@ public class FailedVersionsCachingVersionProvider implements VersionProvider {
                     if(!failureAllowedVersion.isFailureAllowed()) {
                         return true;
                     }
-                    return !cache.get(dependency.withVersion(failureAllowedVersion.getVersion())).isPresent();
+                    Dependency proposedDependency = dependency.withVersion(failureAllowedVersion.getVersion());
+                    if (cache.get(proposedDependency).isPresent()) {
+                        LOGGER.debug(
+                                "Excluding proposed dependency {} because cache contains previous resolve failure.",
+                                dependency);
+                        return false;
+                    }
+                    return true;
                 });
 
     }

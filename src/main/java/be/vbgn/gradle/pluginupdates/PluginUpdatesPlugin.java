@@ -120,22 +120,23 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
             CacheRepository cacheRepository = ((GradleInternal) project.getGradle()).getServices()
                     .get(CacheRepository.class);
 
-            InvalidResolvesCache invalidResolvesCache = new InvalidResolvesCache(cacheRepository);
+            try (InvalidResolvesCache invalidResolvesCache = new InvalidResolvesCache(cacheRepository)) {
 
-            VersionProvider versionProvider = new FailedVersionsCachingVersionProvider(
-                    updateBuilder.buildVersionProvider(new DefaultVersionProvider()), invalidResolvesCache);
-            UpdateFinder updateFinder = new FailedVersionsCachingFinder(updateBuilder
-                    .buildUpdateFinder(new DefaultUpdateFinder(project.getBuildscript(), versionProvider)),
-                    invalidResolvesCache);
+                VersionProvider versionProvider = new FailedVersionsCachingVersionProvider(
+                        updateBuilder.buildVersionProvider(new DefaultVersionProvider()), invalidResolvesCache);
+                UpdateFinder updateFinder = new FailedVersionsCachingFinder(updateBuilder
+                        .buildUpdateFinder(new DefaultUpdateFinder(project.getBuildscript(), versionProvider)),
+                        invalidResolvesCache);
 
-            DefaultUpdateChecker updateChecker = new DefaultUpdateChecker(updateFinder);
+                DefaultUpdateChecker updateChecker = new DefaultUpdateChecker(updateFinder);
 
-            updateChecker.getUpdates(project.getBuildscript().getConfigurations().getAt("classpath"))
-                    .filter(Update::isOutdated)
-                    .forEach(update -> {
-                        LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
-                                .format(update));
-                    });
+                updateChecker.getUpdates(project.getBuildscript().getConfigurations().getAt("classpath"))
+                        .filter(Update::isOutdated)
+                        .forEach(update -> {
+                            LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
+                                    .format(update));
+                        });
+            }
         } catch (Throwable e) {
             LOGGER.error("Plugin update check failed.", e);
         }

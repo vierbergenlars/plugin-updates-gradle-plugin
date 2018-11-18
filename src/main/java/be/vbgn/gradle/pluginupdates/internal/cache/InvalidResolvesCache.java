@@ -10,12 +10,14 @@ import java.util.function.Function;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheBuilder.LockTarget;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.FileLockManager.LockMode;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 
-public class InvalidResolvesCache {
+public class InvalidResolvesCache implements AutoCloseable {
     private CacheBuilder cacheBuilder;
 
     private PersistentCache openedCache;
@@ -24,8 +26,9 @@ public class InvalidResolvesCache {
 
     public InvalidResolvesCache(CacheRepository cacheRepository) {
         this.cacheBuilder = cacheRepository.cache("be.vbgn.gradle.pluginupdates")
-                    .withCrossVersionCache(LockTarget.DefaultTarget)
-                    .withProperties(Collections.singletonMap("cacheVersion", 1));
+                .withCrossVersionCache(LockTarget.DefaultTarget)
+                .withLockOptions(LockOptionsBuilder.mode(LockMode.Exclusive))
+                .withProperties(Collections.singletonMap("cacheVersion", "1"));
     }
 
     private synchronized void openCache() {
@@ -50,9 +53,7 @@ public class InvalidResolvesCache {
 
     private <T> T withCache(Function<PersistentIndexedCache<Map<String, String>, Throwable>, T> cacheHandler) {
         openCache();
-        T returnValue = openedCache.useCache(() -> cacheHandler.apply(persistentIndexedCache));
-        closeCache();
-        return returnValue;
+        return openedCache.useCache(() -> cacheHandler.apply(persistentIndexedCache));
     }
 
     public void put(FailedDependency failedDependency) {
@@ -68,5 +69,10 @@ public class InvalidResolvesCache {
             return Optional.empty();
         }
         return Optional.of(new DefaultFailedDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion().toString(), error));
+    }
+
+    @Override
+    public void close() {
+        this.closeCache();
     }
 }

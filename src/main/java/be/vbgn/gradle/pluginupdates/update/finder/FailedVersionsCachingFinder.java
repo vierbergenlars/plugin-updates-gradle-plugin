@@ -5,8 +5,12 @@ import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
 import be.vbgn.gradle.pluginupdates.internal.cache.InvalidResolvesCache;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 public class FailedVersionsCachingFinder implements UpdateFinder {
+
+    private static final Logger LOGGER = Logging.getLogger(FailedVersionsCachingFinder.class);
 
     @Nonnull
     private UpdateFinder updateFinder;
@@ -25,6 +29,7 @@ public class FailedVersionsCachingFinder implements UpdateFinder {
         return updateFinder.findUpdates(dependency)
                 .peek(dependency1 -> {
                     if(dependency1 instanceof FailedDependency) {
+                        LOGGER.debug("Added failed dependency {} to cache");
                         cache.put((FailedDependency)dependency1);
                     }
                 });
