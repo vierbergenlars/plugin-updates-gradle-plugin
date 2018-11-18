@@ -11,6 +11,7 @@ cache:
 
 script: ./gradlew check -i
 deploy:
+  skip_cleanup: true
   on:
     tags: true
     condition: "$TRAVIS_SECURE_ENV_VARS"
