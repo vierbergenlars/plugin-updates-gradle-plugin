@@ -1,10 +1,10 @@
 package be.vbgn.gradle.pluginupdates.dependency;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public interface FailedDependency extends Dependency {
 
-    @Nonnull
+    @Nullable
     Throwable getProblem();
 
 }

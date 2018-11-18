@@ -1,8 +1,9 @@
 package be.vbgn.gradle.pluginupdates.version;
 
+import java.io.Serializable;
 import javax.annotation.Nonnull;
 
-public class Version implements Comparable<Version> {
+public class Version implements Comparable<Version>, Serializable {
 
     @Nonnull
     private NumberWildcard major;

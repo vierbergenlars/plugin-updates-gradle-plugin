@@ -4,8 +4,9 @@ import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
 import java.util.Collections;
-import java.util.Map;
+import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -20,7 +21,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
-import org.gradle.internal.serialize.BaseSerializerFactory;
 
 public class InvalidResolvesCache implements AutoCloseable {
 
@@ -29,13 +29,20 @@ public class InvalidResolvesCache implements AutoCloseable {
 
     private PersistentCache openedCache;
 
-    private PersistentIndexedCache<Map<String, String>, Throwable> persistentIndexedCache;
+    private PersistentIndexedCache<Dependency, Date> persistentIndexedCache;
+
+    private long maxAge;
 
     public InvalidResolvesCache(CacheRepository cacheRepository) {
+        this(cacheRepository, TimeUnit.DAYS.toNanos(1));
+    }
+
+    public InvalidResolvesCache(CacheRepository cacheRepository, long maxAge) {
         this.cacheBuilder = cacheRepository.cache("be.vbgn.gradle.pluginupdates")
                 .withCrossVersionCache(LockTarget.DefaultTarget)
                 .withLockOptions(LockOptionsBuilder.mode(LockMode.Exclusive))
-                .withProperties(Collections.singletonMap("cacheVersion", "1"));
+                .withProperties(Collections.singletonMap("cacheVersion", "2"));
+        this.maxAge = maxAge;
     }
 
     private synchronized void openCache() {
@@ -44,10 +51,10 @@ public class InvalidResolvesCache implements AutoCloseable {
             LOGGER.debug("Opened cache {}", openedCache);
         }
         if(persistentIndexedCache == null) {
-            persistentIndexedCache = openedCache.createCache(PersistentIndexedCacheParameters.of("invalidResolves",
-                            BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER,
-                            BaseSerializerFactory.THROWABLE_SERIALIZER));
-            LOGGER.debug("Opened indexed cache {}", persistentIndexedCache);
+            PersistentIndexedCacheParameters<Dependency, Date> cacheParameters = new PersistentIndexedCacheParameters<>(
+                    "invalidResolves", Dependency.class, Date.class);
+            persistentIndexedCache = openedCache.createCache(cacheParameters);
+            LOGGER.debug("Opened indexed cache {} with parameters {}", persistentIndexedCache, cacheParameters);
         }
     }
 
@@ -61,7 +68,7 @@ public class InvalidResolvesCache implements AutoCloseable {
 
 
     @Nullable
-    private <T> T withCache(@Nonnull Function<PersistentIndexedCache<Map<String, String>, Throwable>, T> cacheHandler) {
+    private <T> T withCache(@Nonnull Function<PersistentIndexedCache<Dependency, Date>, T> cacheHandler) {
         try {
             openCache();
             return openedCache.useCache(() -> cacheHandler.apply(persistentIndexedCache));
@@ -72,22 +79,32 @@ public class InvalidResolvesCache implements AutoCloseable {
         }
     }
 
-    public void put(FailedDependency failedDependency) {
-        LOGGER.debug("Adding failed dependency {} to cache", failedDependency);
+    public void put(Dependency dependency) {
+        LOGGER.debug("Adding failed dependency {} to cache", dependency);
         withCache((cache) -> {
-             cache.put(failedDependency.toDependencyNotation(), failedDependency.getProblem());
-             return null;
+            cache.put(dependency, new Date());
+            return null;
         });
     }
 
     public Optional<FailedDependency> get(Dependency dependency) {
-        Throwable error = withCache((cache) -> cache.get(dependency.toDependencyNotation()));
-        if(error == null) {
+        Date cacheValue = withCache((cache) -> cache.get(dependency));
+        if (cacheValue == null) {
             LOGGER.debug("Could not find failed dependency for {} in cache", dependency);
             return Optional.empty();
         }
-        LOGGER.debug("Found failed dependency for {} in cache: {}", dependency, error);
-        return Optional.of(new DefaultFailedDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion().toString(), error));
+        if (cacheValue.getTime() <= new Date().getTime() - maxAge) {
+            LOGGER.debug("Failed dependency for {} expired: {} if longer than {} µs ago", dependency,
+                    cacheValue, maxAge);
+            withCache(cache -> {
+                cache.remove(dependency);
+                return null;
+            });
+            return Optional.empty();
+        }
+        LOGGER.debug("Found failed dependency for {} in cache: {}", dependency, cacheValue);
+        return Optional.of(new DefaultFailedDependency(dependency.getGroup(), dependency.getName(),
+                dependency.getVersion().toString(), null));
     }
 
     @Override

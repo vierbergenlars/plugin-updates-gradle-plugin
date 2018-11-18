@@ -66,8 +66,8 @@ public class DefaultUpdateFinder implements UpdateFinder {
                     return resolvedDependencies
                             .peek(dependency1 -> {
                                 if (dependency1 instanceof FailedDependency) {
-                                    LOGGER.debug("Suppressed failure to resolve {}: {}", dependency1,
-                                            ((FailedDependency) dependency1).getProblem().getMessage());
+                                    LOGGER.debug("Suppressed failure to resolve {}", dependency1,
+                                            ((FailedDependency) dependency1).getProblem());
                                 }
                             })
                             .filter(dependency1 -> !(dependency1 instanceof FailedDependency));
@@ -80,17 +80,31 @@ public class DefaultUpdateFinder implements UpdateFinder {
                 });
     }
 
-
-    @Nonnull
     private Stream<Dependency> resolveDependency(@Nonnull Dependency dependency) {
-        LOGGER.debug("Resolving dependency {}", dependency);
         if (invalidResolvesCache != null) {
             Optional<FailedDependency> failedDependencyOptional = invalidResolvesCache.get(dependency);
             if (failedDependencyOptional.isPresent()) {
-                LOGGER.debug("Found failed dependency in cache");
+                LOGGER.trace("Found failed dependency in cache. Using failed dependency {}",
+                        failedDependencyOptional.get());
                 return Stream.of(failedDependencyOptional.get());
             }
+
+            return resolveDependencyUncached(dependency)
+                    .peek(dependency1 -> {
+                        if (dependency1 instanceof FailedDependency) {
+                            invalidResolvesCache.put(dependency);
+                        }
+                    });
         }
+
+        return resolveDependencyUncached(dependency);
+
+    }
+
+
+    @Nonnull
+    private Stream<Dependency> resolveDependencyUncached(@Nonnull Dependency dependency) {
+        LOGGER.debug("Resolving dependency {}", dependency);
         org.gradle.api.artifacts.Dependency updatedDependency = dependencyHandler
                 .create(dependency.toDependencyNotation());
         Configuration updatedConfiguration = configurationContainer.detachedConfiguration(updatedDependency);
@@ -102,12 +116,7 @@ public class DefaultUpdateFinder implements UpdateFinder {
 
         Stream<FailedDependency> failedDependencies = updatedLenientConfiguration.getUnresolvedModuleDependencies()
                 .stream()
-                .map(DefaultFailedDependency::fromGradle)
-                .peek(failedDependency -> {
-                    if (invalidResolvesCache != null) {
-                        invalidResolvesCache.put(failedDependency);
-                    }
-                });
+                .map(DefaultFailedDependency::fromGradle);
         Stream<Dependency> updatedDependencies = updatedLenientConfiguration.getAllModuleDependencies().stream()
                 .flatMap(DefaultDependency::fromGradle);
 
