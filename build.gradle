@@ -38,6 +38,7 @@ task integrationTest(type: Test, group: "verification") {
     }
 }
 
+check.dependsOn(test)
 check.dependsOn(integrationTest)
 
 

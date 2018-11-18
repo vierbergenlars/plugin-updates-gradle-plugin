@@ -117,23 +117,33 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
 
             CacheRepository cacheRepository = ((GradleInternal) project.getGradle()).getServices()
                     .get(CacheRepository.class);
+            InvalidResolvesCache invalidResolvesCache = null;
+            try {
+                invalidResolvesCache = new InvalidResolvesCache(cacheRepository);
+            } catch (NoClassDefFoundError e) {
+                LOGGER.warn(
+                        "Some required gradle classes are missing. Invalid resolves cache is disabled, which will slow down plugin update checks.");
+                LOGGER.debug("Full exception for above warning", e);
+            }
 
-            try (InvalidResolvesCache invalidResolvesCache = new InvalidResolvesCache(cacheRepository)) {
-
-                VersionProvider versionProvider = updateBuilder.buildVersionProvider(new DefaultVersionProvider());
-                DefaultUpdateFinder defaultUpdateFinder = new DefaultUpdateFinder(project.getBuildscript(),
-                        versionProvider);
+            VersionProvider versionProvider = updateBuilder.buildVersionProvider(new DefaultVersionProvider());
+            DefaultUpdateFinder defaultUpdateFinder = new DefaultUpdateFinder(project.getBuildscript(),
+                    versionProvider);
+            if (invalidResolvesCache != null) {
                 defaultUpdateFinder.setInvalidResolvesCache(invalidResolvesCache);
-                UpdateFinder updateFinder = updateBuilder.buildUpdateFinder(defaultUpdateFinder);
+            }
+            UpdateFinder updateFinder = updateBuilder.buildUpdateFinder(defaultUpdateFinder);
 
-                DefaultUpdateChecker updateChecker = new DefaultUpdateChecker(updateFinder);
+            DefaultUpdateChecker updateChecker = new DefaultUpdateChecker(updateFinder);
 
-                updateChecker.getUpdates(project.getBuildscript().getConfigurations().getAt("classpath"))
-                        .filter(Update::isOutdated)
-                        .forEach(update -> {
-                            LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
-                                    .format(update));
-                        });
+            updateChecker.getUpdates(project.getBuildscript().getConfigurations().getAt("classpath"))
+                    .filter(Update::isOutdated)
+                    .forEach(update -> {
+                        LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
+                                .format(update));
+                    });
+            if(invalidResolvesCache != null) {
+                invalidResolvesCache.close();
             }
         } catch (Throwable e) {
             LOGGER.error("Plugin update check failed.", e);

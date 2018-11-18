@@ -7,10 +7,13 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheBuilder.LockTarget;
+import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager.LockMode;
 import org.gradle.cache.PersistentCache;
@@ -57,9 +60,16 @@ public class InvalidResolvesCache implements AutoCloseable {
     }
 
 
-    private <T> T withCache(Function<PersistentIndexedCache<Map<String, String>, Throwable>, T> cacheHandler) {
-        openCache();
-        return openedCache.useCache(() -> cacheHandler.apply(persistentIndexedCache));
+    @Nullable
+    private <T> T withCache(@Nonnull Function<PersistentIndexedCache<Map<String, String>, Throwable>, T> cacheHandler) {
+        try {
+            openCache();
+            return openedCache.useCache(() -> cacheHandler.apply(persistentIndexedCache));
+        } catch (CacheOpenException e) {
+            LOGGER.warn("Invalid resolves cache could not be opened. Skipping use of cache.");
+            LOGGER.debug("Full stacktrace for above warning", e);
+            return null;
+        }
     }
 
     public void put(FailedDependency failedDependency) {
