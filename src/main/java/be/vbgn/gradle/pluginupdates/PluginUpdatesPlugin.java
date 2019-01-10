@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.LinkedList;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.codehaus.groovy.runtime.MethodClosure;
@@ -136,15 +138,19 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
 
             DefaultUpdateChecker updateChecker = new DefaultUpdateChecker(updateFinder);
 
+            List<Update> updates = new LinkedList<>();
+
             updateChecker.getUpdates(project.getBuildscript().getConfigurations().getAt("classpath"))
                     .filter(Update::isOutdated)
-                    .forEach(update -> {
-                        LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
-                                .format(update));
-                    });
+                    .forEach(updates::add);
+
             if(invalidResolvesCache != null) {
                 invalidResolvesCache.close();
             }
+            updates.forEach(update -> {
+                LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
+                        .format(update));
+            });
         } catch (Throwable e) {
             LOGGER.error("Plugin update check failed.", e);
         }
