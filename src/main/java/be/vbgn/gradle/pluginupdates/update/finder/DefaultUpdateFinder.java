@@ -1,6 +1,6 @@
 package be.vbgn.gradle.pluginupdates.update.finder;
 
-import be.vbgn.gradle.pluginupdates.StreamUtil;
+import be.vbgn.gradle.pluginupdates.internal.StreamUtil;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultDependency;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;

@@ -2,6 +2,7 @@ package be.vbgn.gradle.pluginupdates;
 
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateBuilder;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerConfigurationImpl;
+import be.vbgn.gradle.pluginupdates.internal.StreamUtil;
 import be.vbgn.gradle.pluginupdates.update.Update;
 import be.vbgn.gradle.pluginupdates.update.checker.DefaultUpdateChecker;
 import be.vbgn.gradle.pluginupdates.update.finder.DefaultUpdateFinder;
@@ -163,8 +164,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
         Gradle gradle = project.getGradle();
         UpdateCheckerConfigurationImpl settingsConfiguration;
         try {
-            settingsConfiguration = findUpdateCheckerConfiguration(
-                    ((GradleInternal) gradle).getSettings());
+            settingsConfiguration = findUpdateCheckerConfiguration(((GradleInternal) gradle).getSettings());
         } catch (ClassCastException | NoSuchMethodError e) {
             LOGGER.error(
                     "Gradle object {} does not implement GradleInternal or does not have a getSettings() method. Plugin update configuration in settings.gradle can not be fetched and will be ignored. {}",

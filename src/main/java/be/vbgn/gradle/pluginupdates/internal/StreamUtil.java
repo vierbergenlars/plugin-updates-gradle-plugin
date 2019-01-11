@@ -1,4 +1,4 @@
-package be.vbgn.gradle.pluginupdates;
+package be.vbgn.gradle.pluginupdates.internal;
 
 import java.util.stream.Stream;
 
