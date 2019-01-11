@@ -1,11 +1,13 @@
 package be.vbgn.gradle.pluginupdates;
 
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateBuilder;
+import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerBuilderConfiguration;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerConfigurationImpl;
 import groovy.lang.GroovyObject;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import javax.annotation.Nonnull;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
@@ -13,7 +15,7 @@ import org.gradle.api.plugins.PluginAware;
 
 public class ConfigurationPlugin implements Plugin<PluginAware>, Serializable {
     public static final String PLUGIN_ID = PluginUpdatesPlugin.PLUGIN_ID.concat(".config");
-    UpdateCheckerConfigurationImpl configuration;
+    private UpdateCheckerConfigurationImpl configuration;
 
     private <T> T createExtension(Object object, String name, Class<T> clazz) {
         if(object instanceof ExtensionAware) {
@@ -35,13 +37,17 @@ public class ConfigurationPlugin implements Plugin<PluginAware>, Serializable {
     }
 
     @Override
-    public void apply(PluginAware target) {
+    public void apply(@Nonnull PluginAware target) {
         configuration = createExtension(target, "pluginUpdates", UpdateCheckerConfigurationImpl.class);
+    }
+
+    public UpdateCheckerBuilderConfiguration getConfiguration() {
+        return configuration;
     }
 
     private void writeObject(java.io.ObjectOutputStream out)
             throws IOException {
-        out.writeObject(configuration.getPolicy());
+        out.writeObject(configuration.getUpdateBuilder());
 
     }
 

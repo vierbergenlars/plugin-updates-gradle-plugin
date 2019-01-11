@@ -1,6 +1,5 @@
 package be.vbgn.gradle.pluginupdates.dsl.internal;
 
-import be.vbgn.gradle.pluginupdates.dsl.UpdateCheckerConfiguration;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
@@ -8,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.Nonnull;
 
-public class UpdateCheckerConfigurationImpl implements UpdateCheckerConfiguration, Serializable {
+public class UpdateCheckerConfigurationImpl implements UpdateCheckerBuilderConfiguration, Serializable {
 
     private UpdateBuilder policy = new UpdatePolicyImpl();
 
@@ -26,13 +25,14 @@ public class UpdateCheckerConfigurationImpl implements UpdateCheckerConfiguratio
     }
 
     @Nonnull
-    public static UpdateCheckerConfigurationImpl merge(@Nonnull UpdateCheckerConfigurationImpl... configurations) {
+    public static UpdateCheckerBuilderConfiguration merge(
+            @Nonnull UpdateCheckerBuilderConfiguration... configurations) {
         UpdateCheckerConfigurationImpl configuration = new UpdateCheckerConfigurationImpl();
 
         List<UpdateBuilder> updateBuilders = new LinkedList<>();
 
-        for (UpdateCheckerConfigurationImpl updateCheckerConfiguration : configurations) {
-            updateBuilders.add(updateCheckerConfiguration.policy);
+        for (UpdateCheckerBuilderConfiguration updateCheckerConfiguration : configurations) {
+            updateBuilders.add(updateCheckerConfiguration.getUpdateBuilder());
         }
 
         configuration.policy = new MergedUpdatePolicyImpl(updateBuilders);
@@ -54,5 +54,10 @@ public class UpdateCheckerConfigurationImpl implements UpdateCheckerConfiguratio
     private void readObjectNoData()
             throws ObjectStreamException {
         policy = new UpdatePolicyImpl();
+    }
+
+    @Override
+    public UpdateBuilder getUpdateBuilder() {
+        return policy;
     }
 }
