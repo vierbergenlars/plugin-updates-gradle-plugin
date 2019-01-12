@@ -94,10 +94,12 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
                     return true;
                 })
                 .forEach(this::runBuildscriptUpdateCheck);
+        updateChecker.close();
     }
 
     private void onBuildFinished(@Nonnull Project project, @Nonnull BuildResult buildResult) {
         runBuildscriptUpdateCheck(project);
+        updateChecker.close();
     }
 
     private void configurePlugin(@Nonnull Gradle gradle) {

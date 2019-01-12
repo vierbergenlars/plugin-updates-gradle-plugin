@@ -9,6 +9,7 @@ import be.vbgn.gradle.pluginupdates.update.finder.DefaultVersionProvider;
 import be.vbgn.gradle.pluginupdates.update.finder.UpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
 import be.vbgn.gradle.pluginupdates.update.finder.internal.InvalidResolvesCache;
+import java.io.Closeable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,7 +22,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
 
-public class UpdateChecker {
+public class UpdateChecker implements Closeable {
     private static Logger LOGGER = Logging.getLogger(UpdateChecker.class);
     private Gradle gradle;
     private ConfigurationCollector configurationCollector;
@@ -48,9 +49,6 @@ public class UpdateChecker {
                 .ifPresent(defaultUpdateFinder::setInvalidResolvesCache);
 
         List<Update> updates = updateChecker.getUpdates(configuration).collect(Collectors.toList());
-
-        getInvalidResolvesCache()
-                .ifPresent(invalidResolvesCache -> invalidResolvesCache.close());
 
         return updates;
 
@@ -83,4 +81,8 @@ public class UpdateChecker {
         return invalidResolvesCache;
     }
 
+    @Override
+    public void close() {
+        getInvalidResolvesCache().ifPresent(invalidResolvesCache1 -> invalidResolvesCache1.close());
+    }
 }
