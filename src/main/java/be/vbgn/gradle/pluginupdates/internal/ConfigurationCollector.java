@@ -31,18 +31,25 @@ public class ConfigurationCollector {
 
     private UpdateCheckerBuilderConfiguration global() {
         if(globalConfiguration == null) {
-            UpdateCheckerBuilderConfiguration rootConfiguration = findUpdateCheckerConfiguration(gradle);
-            UpdateCheckerBuilderConfiguration settingsConfiguration;
-            try {
-                settingsConfiguration = findUpdateCheckerConfiguration(((GradleInternal) gradle).getSettings());
-            } catch (ClassCastException | NoSuchMethodError e) {
-                LOGGER.error(
-                        "Gradle object {} does not implement GradleInternal or does not have a getSettings() method. Plugin update configuration in settings.gradle can not be fetched and will be ignored. {}",
-                        gradle, e);
+            synchronized (this) {
+                // Check again in synchronized block, so we do not try to create the global configuration multiple times
+                // if multiple threads are checking the configuration concurrently
+                if (globalConfiguration != null) {
+                    return globalConfiguration;
+                }
+                UpdateCheckerBuilderConfiguration rootConfiguration = findUpdateCheckerConfiguration(gradle);
+                UpdateCheckerBuilderConfiguration settingsConfiguration;
+                try {
+                    settingsConfiguration = findUpdateCheckerConfiguration(((GradleInternal) gradle).getSettings());
+                } catch (ClassCastException | NoSuchMethodError e) {
+                    LOGGER.error(
+                            "Gradle object {} does not implement GradleInternal or does not have a getSettings() method. Plugin update configuration in settings.gradle can not be fetched and will be ignored. {}",
+                            gradle, e);
 
-                settingsConfiguration = new UpdateCheckerConfigurationImpl();
+                    settingsConfiguration = new UpdateCheckerConfigurationImpl();
+                }
+                globalConfiguration = UpdateCheckerConfigurationImpl.merge(rootConfiguration, settingsConfiguration);
             }
-            globalConfiguration = UpdateCheckerConfigurationImpl.merge(rootConfiguration, settingsConfiguration);
         }
         return globalConfiguration;
 
