@@ -1,6 +1,8 @@
 package be.vbgn.gradle.pluginupdates;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import be.vbgn.gradle.pluginupdates.version.Version;
@@ -121,6 +123,27 @@ public class IntegrationTest extends AbstractIntegrationTest {
                     "Plugin update configuration in settings.gradle can not be fetched and will be ignored.");
         }
 
+    }
+
+    @Test
+    public void warnOnceAboutUnsupportedSettings() throws IOException {
+        // Gradle versions < 4.3 do not have the required api to read settings configuration
+        assumeTrue("Gradle version is at most 4.3", Version.parse(gradleVersion).compareTo(Version.parse("4.3")) < 0);
+
+        BuildResult buildResult = buildProject(integrationTests.resolve("subprojects"), "clean");
+
+        String[] lines = buildResult.getOutput().split("\n");
+
+        boolean foundWarning = false;
+        for (String line : lines) {
+            if (line.contains(
+                    "Plugin update configuration in settings.gradle can not be fetched and will be ignored.")) {
+                assertFalse("The warning message can only be present once.", foundWarning);
+                foundWarning = true;
+            }
+
+        }
+        assertTrue("The warning message must be present once.", foundWarning);
     }
 
 }

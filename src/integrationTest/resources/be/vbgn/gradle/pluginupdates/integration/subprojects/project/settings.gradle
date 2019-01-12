@@ -1,3 +1,4 @@
 rootProject.name = 'subprojects'
 
+include ':subproject2'
 include ':subproject'
