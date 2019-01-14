@@ -20,7 +20,7 @@ public interface RenameSpec {
      * Any version of the target module is valid as a replacement for the source module, even if it is of a lower version than the source module.
      * <p>
      * Example: for the renameSpec <code>rename 'com.example.a:package' to 'com.example.b:other'</code>,
-     * the outcome <code>com.example.a:package:1.2.3 -> com.example.b:other:1.0.0</code> is valid
+     * the outcome <code>com.example.a:package:1.2.3 -&gt; com.example.b:other:1.0.0</code> is valid
      *
      * @param module The module identifier of the target module that the source module has been renamed to
      */
@@ -34,8 +34,8 @@ public interface RenameSpec {
      * Only versions of the target module that match the version/version constraint are valid as a replacement of the source module.
      * <p>
      * Example: for the renameSpec <code>rename 'com.example.a:package' to 'com.example.b:other:1.+'</code>,
-     * the outcome <code>com.example.a:package:1.2.3 -> com.example.b:other:1.0.0</code> is valid.
-     * But for the same renameSpec, the outcome <code>com.example.a:package:1.2.3 -> com.example.b:other:0.3.4</code> is invalid and will not be proposed
+     * the outcome <code>com.example.a:package:1.2.3 -&gt; com.example.b:other:1.0.0</code> is valid.
+     * But for the same renameSpec, the outcome <code>com.example.a:package:1.2.3 -&gt com.example.b:other:0.3.4</code> is invalid and will not be proposed
      *
      * @param dependency The dependency that the source module has been renamed to
      */

@@ -14,7 +14,7 @@ public interface IgnoreSpec {
      * <p>
      * This will avoid suggesting updates that change the first part of the version number
      * <p>
-     * Example: <code>1.2.3 -> 2.0.1</code> will be ignored, but <code>1.2.3 -> 1.3.0</code> will not be ignored
+     * Example: <code>1.2.3 -&gt; 2.0.1</code> will be ignored, but <code>1.2.3 -&gt; 1.3.0</code> will not be ignored
      *
      * @return for chaining with {@link #because(String)}
      * @see be.vbgn.gradle.pluginupdates.version.Version
@@ -26,7 +26,7 @@ public interface IgnoreSpec {
      * Ignore all minor updates for a module or dependency
      * <p>
      * This will avoid suggesting updates that change the first or second part of the version number
-     * Example: <code>1.2.3 -> 2.3.0</code> will be ignored, but <code>1.2.3 -> 1.2.4</code> will not be ignored
+     * Example: <code>1.2.3 -&gt; 2.3.0</code> will be ignored, but <code>1.2.3 -&gt; 1.2.4</code> will not be ignored
      * <p>
      * Also ignores {@link #majorUpdates()}
      *
@@ -42,7 +42,7 @@ public interface IgnoreSpec {
      * This will avoid suggesting updates that change the first, second or third part of the version number.
      * A version number has 3 or 4 parts, see {@link be.vbgn.gradle.pluginupdates.version.Version} for details.
      * <p>
-     * Example <code>1.2.3 -> 1.2.4</code> will be ignored, but <code>1.2.3 -> 1.2.3.1</code> or <code>1.2.3.2 -> 1.2.3.3</code> will not be ignored
+     * Example <code>1.2.3 -&gt; 1.2.4</code> will be ignored, but <code>1.2.3 -&gt; 1.2.3.1</code> or <code>1.2.3.2 -&gt; 1.2.3.3</code> will not be ignored
      * <p>
      * Also ignores {@link #minorUpdates()} and {@link #majorUpdates()}
      *

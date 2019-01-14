@@ -26,7 +26,7 @@ public class NumberWildcard implements Comparable<NumberWildcard>, Serializable 
      * Numeric part of the component
      * <p>
      * -1 indicates the absence of a numeric part.
-     * Valid values are >=0
+     * Valid values are &gt;=0
      */
     private int number = -1;
 
