@@ -50,6 +50,9 @@ public class UpdateChecker implements Closeable {
 
         List<Update> updates = updateChecker.getUpdates(configuration).collect(Collectors.toList());
 
+        getInvalidResolvesCache()
+                .ifPresent(invalidResolvesCache1 -> invalidResolvesCache1.close());
+
         return updates;
 
     }
