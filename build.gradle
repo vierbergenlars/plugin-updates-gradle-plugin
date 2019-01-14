@@ -49,6 +49,10 @@ sonarqube {
     }
 }
 
+javadoc {
+    exclude '**/internal/**'
+}
+
 dependencies {
     compile gradleApi()
     compile localGroovy()

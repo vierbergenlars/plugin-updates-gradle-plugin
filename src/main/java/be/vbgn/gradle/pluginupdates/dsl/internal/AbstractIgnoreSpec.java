@@ -2,6 +2,7 @@ package be.vbgn.gradle.pluginupdates.dsl.internal;
 
 import be.vbgn.gradle.pluginupdates.dsl.IgnoreSpec;
 import java.io.Serializable;
+import javax.annotation.Nonnull;
 
 class AbstractIgnoreSpec implements IgnoreSpec, Serializable {
 
@@ -22,6 +23,7 @@ class AbstractIgnoreSpec implements IgnoreSpec, Serializable {
      */
     protected boolean ignoreMicroUpdates = false;
 
+    @Nonnull
     @Override
     public IgnoreSpec majorUpdates() {
         ignoreModule = false;
@@ -29,6 +31,7 @@ class AbstractIgnoreSpec implements IgnoreSpec, Serializable {
         return this;
     }
 
+    @Nonnull
     @Override
     public IgnoreSpec minorUpdates() {
         majorUpdates();
@@ -36,6 +39,7 @@ class AbstractIgnoreSpec implements IgnoreSpec, Serializable {
         return this;
     }
 
+    @Nonnull
     @Override
     public IgnoreSpec microUpdates() {
         minorUpdates();
@@ -44,7 +48,7 @@ class AbstractIgnoreSpec implements IgnoreSpec, Serializable {
     }
 
     @Override
-    public void because(String reason) {
+    public void because(@Nonnull String reason) {
         // TODO: Reason is not used anywhere right now
     }
 }

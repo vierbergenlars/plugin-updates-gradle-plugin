@@ -5,8 +5,14 @@ import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
 import java.util.List;
 import javax.annotation.Nonnull;
 
+/**
+ * Represents updates that are available for a certain {@link Dependency}
+ */
 public interface Update {
 
+    /**
+     * The original dependency for which updates have been looked up
+     */
     @Nonnull
     Dependency getOriginal();
 
