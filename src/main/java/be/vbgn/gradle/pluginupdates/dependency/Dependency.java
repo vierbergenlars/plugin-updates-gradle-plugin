@@ -10,7 +10,6 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 public interface Dependency extends ModuleIdentifier {
-
     String DEFAULT_TYPE = DependencyArtifact.DEFAULT_TYPE;
 
     @Override

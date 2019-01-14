@@ -1,10 +1,10 @@
 package be.vbgn.gradle.pluginupdates.update.finder;
 
-import be.vbgn.gradle.pluginupdates.internal.StreamUtil;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultDependency;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
+import be.vbgn.gradle.pluginupdates.internal.StreamUtil;
 import be.vbgn.gradle.pluginupdates.update.finder.internal.InvalidResolvesCache;
 import java.util.Optional;
 import java.util.stream.Stream;

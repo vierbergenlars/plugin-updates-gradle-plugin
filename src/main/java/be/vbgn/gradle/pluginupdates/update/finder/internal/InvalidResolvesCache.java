@@ -22,13 +22,29 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 
-public class InvalidResolvesCache implements AutoCloseable {
+/**
+ * Keeps a cache of dependencies for which resolving has failed, so they are not resolved every time
+ */
+public class InvalidResolvesCache {
 
     private static final Logger LOGGER = Logging.getLogger(InvalidResolvesCache.class);
+
+    /**
+     * Cache builder that is used to create an indexed key-value cache {@link #persistentIndexedCache} when needed
+     */
     private CacheBuilder cacheBuilder;
 
+    /**
+     * File cache that contains the {@link #persistentIndexedCache}
+     *
+     * @implNote Directly manipulated by {@link #openCache()} and {@link #closeCache()}.
+     * Other usages should use the higher-level {@link #withCache(Function)} method
+     */
     private PersistentCache openedCache;
 
+    /**
+     * Key-value cache that keeps track of dependencies that have failed to resolve
+     */
     private PersistentIndexedCache<Dependency, Date> persistentIndexedCache;
 
     private long maxAge;
@@ -45,7 +61,13 @@ public class InvalidResolvesCache implements AutoCloseable {
         this.maxAge = maxAge;
     }
 
-    private synchronized void openCache() {
+    /**
+     * Opens the invalid resolves cache
+     *
+     * @throws CacheOpenException When the cache can not be opened
+     * @implNote This method is not thread safe and may only be called while holding a lock
+     */
+    private void openCache() throws CacheOpenException {
         if(openedCache == null) {
             openedCache = cacheBuilder.open();
             LOGGER.debug("Opened cache {}", openedCache);
@@ -58,7 +80,12 @@ public class InvalidResolvesCache implements AutoCloseable {
         }
     }
 
-    private synchronized void closeCache() {
+    /**
+     * Closes the invalid resolves cache
+     *
+     * @implNote This method is not thread safe and may only be called while holding a lock
+     */
+    private void closeCache() {
         if(openedCache != null) {
             openedCache.close();
         }
@@ -67,8 +94,17 @@ public class InvalidResolvesCache implements AutoCloseable {
     }
 
 
+    /**
+     * Runs an operation on the cache
+     * <p>
+     * Automatically opens the cache before the operation starts, and closes it after the operation has ended
+     *
+     * @param cacheHandler Function that will be run and passed a reference to the cache
+     * @param <T>          Return type of the {@code cacheHandler} function
+     * @return The value that {@code cacheHandler} returns, or null when the cache can not be opened
+     */
     @Nullable
-    private <T> T withCache(@Nonnull Function<PersistentIndexedCache<Dependency, Date>, T> cacheHandler) {
+    private synchronized <T> T withCache(@Nonnull Function<PersistentIndexedCache<Dependency, Date>, T> cacheHandler) {
         try {
             openCache();
             return openedCache.useCache(() -> cacheHandler.apply(persistentIndexedCache));
@@ -76,9 +112,16 @@ public class InvalidResolvesCache implements AutoCloseable {
             LOGGER.warn("Invalid resolves cache could not be opened. Skipping use of cache.");
             LOGGER.debug("Full stacktrace for above warning", e);
             return null;
+        } finally {
+            closeCache();
         }
     }
 
+    /**
+     * Places a new dependency in the failed resolves cache.
+     *
+     * @param dependency The dependency that has to be added to the list of failed resolves
+     */
     public void put(Dependency dependency) {
         LOGGER.debug("Adding failed dependency {} to cache", dependency);
         withCache((cache) -> {
@@ -87,6 +130,14 @@ public class InvalidResolvesCache implements AutoCloseable {
         });
     }
 
+    /**
+     * Tries to fetch a {@link FailedDependency} from cache for a {@link Dependency} that has failed.
+     * <p>
+     * Failures are only kept for a limited time, and are cleaned up after they have expired.
+     *
+     * @param dependency The dependency to look up a failure for
+     * @return A failed dependency, or {@link Optional#empty()} when no failed dependency is found or its cache time has expired
+     */
     public Optional<FailedDependency> get(Dependency dependency) {
         Date cacheValue = withCache((cache) -> cache.get(dependency));
         if (cacheValue == null) {
@@ -107,8 +158,4 @@ public class InvalidResolvesCache implements AutoCloseable {
                 dependency.getVersion().toString(), null));
     }
 
-    @Override
-    public void close() {
-        this.closeCache();
-    }
 }
