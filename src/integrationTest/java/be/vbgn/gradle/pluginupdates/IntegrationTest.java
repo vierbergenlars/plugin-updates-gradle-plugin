@@ -125,8 +125,10 @@ public class IntegrationTest extends AbstractIntegrationTest {
 
     }
 
+    /**
+     * https://github.com/vierbergenlars/plugin-updates-gradle-plugin/issues/3
+     */
     @Test
-    @Issue("https://github.com/vierbergenlars/plugin-updates-gradle-plugin/issues/3")
     public void warnOnceAboutUnsupportedSettings() throws IOException {
         // Gradle versions < 4.3 do not have the required api to read settings configuration
         assumeTrue("Gradle version is at most 4.3", Version.parse(gradleVersion).compareTo(Version.parse("4.3")) < 0);

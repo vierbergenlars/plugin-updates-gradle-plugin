@@ -1,10 +1,9 @@
 package be.vbgn.gradle.pluginupdates;
 
+import static be.vbgn.gradle.pluginupdates.TestUtil.writeFile;
 import static org.junit.Assert.assertTrue;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -87,16 +86,5 @@ public class PluginUpdatesPluginIntegrationTest extends AbstractIntegrationTest 
                         "Plugin is outdated in root project 'test-project': org.gradle:gradle-hello-world-plugin:[0.1 -> 0.2]:sources"));
     }
 
-    private void writeFile(File destination, String content) throws IOException {
-        BufferedWriter output = null;
-        try {
-            output = new BufferedWriter(new FileWriter(destination));
-            output.write(content);
-        } finally {
-            if (output != null) {
-                output.close();
-            }
-        }
-    }
 
 }
