@@ -1,5 +1,6 @@
 package be.vbgn.gradle.pluginupdates;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -59,6 +60,12 @@ abstract public class AbstractIntegrationTest {
 
     protected static void assertOutputContains(BuildResult buildResult, String message) {
         assertTrue("Build output: \n '''" + buildResult.getOutput() + "'''\n does not contain " + message,
+                buildResult.getOutput().contains(message));
+
+    }
+
+    protected static void assertOutputNotContains(BuildResult buildResult, String message) {
+        assertFalse("Build output: \n '''" + buildResult.getOutput() + "'''\n contains " + message,
                 buildResult.getOutput().contains(message));
 
     }
