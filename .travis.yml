@@ -11,7 +11,8 @@ cache:
 
 script:
     - ./gradlew check -i
-    - ./gradlew sonarqube -Dsonar.projectKey=vierbergenlars_plugin-updates-gradle-plugin -Dsonar.organization=vierbergenlars-github -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN
+    - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then export SONAR_BRANCH="$TRAVIS_BRANCH"; else export SONAR_BRANCH="$TRAVIS_PULL_REQUEST_BRANCH"; fi;
+      ./gradlew sonarqube -Dsonar.projectKey=vierbergenlars_plugin-updates-gradle-plugin -Dsonar.organization=vierbergenlars-github -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=$SONAR_BRANCH
 deploy:
   skip_cleanup: true
   on:
