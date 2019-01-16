@@ -9,7 +9,9 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 
-script: ./gradlew check -i
+script:
+    - ./gradlew check -i
+    - ./gradlew sonarqube -Dsonar.login=$SONAR_TOKEN
 deploy:
   skip_cleanup: true
   on:

@@ -3,6 +3,7 @@ plugins {
     id 'maven-publish'
     id "com.gradle.plugin-publish" version "0.10.0"
     id 'org.ajoberstar.reckon' version "0.9.0"
+    id "org.sonarqube" version "2.6.2"
 }
 group 'be.vbgn.gradle'
 
@@ -40,7 +41,13 @@ task integrationTest(type: Test, group: "verification") {
 
 integrationTest.mustRunAfter(test)
 check.dependsOn(integrationTest)
+tasks.sonarqube.dependsOn(integrationTest)
 
+sonarqube {
+    properties {
+        properties["sonar.tests"] += sourceSets.integrationTest.allSource.srcDirs
+    }
+}
 
 dependencies {
     compile gradleApi()
