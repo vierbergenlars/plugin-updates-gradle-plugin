@@ -66,7 +66,6 @@ public class InvalidResolvesCacheTest extends AbstractIntegrationTest {
                 .withPluginClasspath()
                 .withProjectDir(testProjectDir.getRoot())
                 .withGradleVersion(gradleVersion)
-                .forwardOutput()
                 .withArguments("runThreadPool")
                 .build();
 
