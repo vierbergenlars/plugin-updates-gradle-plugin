@@ -12,7 +12,6 @@ import be.vbgn.gradle.pluginupdates.update.finder.internal.InvalidResolvesCache;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.GradleInternal;
@@ -25,8 +24,8 @@ class UpdateChecker {
     private static Logger LOGGER = Logging.getLogger(UpdateChecker.class);
     private Gradle gradle;
     private ConfigurationCollector configurationCollector;
-    @Nullable
-    private Optional<InvalidResolvesCache> invalidResolvesCache = null;
+    private boolean invalidResolvesCacheChecked = false;
+    private InvalidResolvesCache invalidResolvesCache = null;
 
 
     public UpdateChecker(Gradle gradle, ConfigurationCollector configurationCollector) {
@@ -63,13 +62,13 @@ class UpdateChecker {
     }
 
     private Optional<InvalidResolvesCache> getInvalidResolvesCache() {
-        if(invalidResolvesCache == null) {
+        if (!invalidResolvesCacheChecked) {
+            invalidResolvesCacheChecked = true;
             CacheRepository cacheRepository = ((GradleInternal) gradle).getServices()
                     .get(CacheRepository.class);
-            invalidResolvesCache = Optional.empty();
             try {
                 if(classExists("org.gradle.cache.LockOptions")) {
-                    invalidResolvesCache = Optional.of(new InvalidResolvesCache(cacheRepository));
+                    invalidResolvesCache = new InvalidResolvesCache(cacheRepository);
                 }
             } catch (NoClassDefFoundError e) {
                 LOGGER.warn(
@@ -77,6 +76,6 @@ class UpdateChecker {
                 LOGGER.debug("Full exception for above warning", e);
             }
         }
-        return invalidResolvesCache;
+        return Optional.ofNullable(invalidResolvesCache);
     }
 }
