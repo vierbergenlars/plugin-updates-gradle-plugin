@@ -6,7 +6,7 @@ import javax.annotation.Nonnull;
 import org.gradle.api.artifacts.Configuration;
 
 /**
- * Update checkers are responsible to take an {@link Configuration} and to generate a {@link Stream<Update>} containing
+ * Update checkers are responsible to take an {@link Configuration} and to generate a {@link Stream} of {@link Update}s containing
  * possible new versions for all entries in the {@link Configuration}
  */
 public interface UpdateChecker {
