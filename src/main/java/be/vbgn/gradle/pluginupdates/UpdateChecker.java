@@ -1,4 +1,4 @@
-package be.vbgn.gradle.pluginupdates.internal;
+package be.vbgn.gradle.pluginupdates;
 
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateBuilder;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerBuilderConfiguration;
@@ -21,7 +21,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
 
-public class UpdateChecker {
+class UpdateChecker {
     private static Logger LOGGER = Logging.getLogger(UpdateChecker.class);
     private Gradle gradle;
     private ConfigurationCollector configurationCollector;

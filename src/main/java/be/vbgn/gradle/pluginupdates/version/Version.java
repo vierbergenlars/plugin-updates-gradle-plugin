@@ -3,6 +3,22 @@ package be.vbgn.gradle.pluginupdates.version;
 import java.io.Serializable;
 import javax.annotation.Nonnull;
 
+/**
+ * Represents, parses, and compares version numbers.
+ * <p>
+ * Supports 2 different schemes of version numbers:
+ * <ul>
+ * <li>MAJOR.MINOR.MICRO-QUALIFIER</li>
+ * <li>MAJOR.MINOR.MICRO.PATCH-QUALIFIER</li>
+ * </ul>
+ * In both cases, the QUALIFIER is optional.
+ * <p>
+ * During parsing of a version number, the correct scheme is automatically determined.
+ * <p>
+ * A version number can also contain a wildcard, <code>+</code>, in any numeric position. In this case, no further parts may follow the wildcard.
+ * <p>
+ * A version number does not have to be complete. <code>4.2</code> is considered a valid version, with the MICRO and QUALIFIER parts being empty. <code>4.2.0</code> will be considered larger than <code>4.2</code>
+ */
 public class Version implements Comparable<Version>, Serializable {
 
     @Nonnull
@@ -16,10 +32,23 @@ public class Version implements Comparable<Version>, Serializable {
     @Nonnull
     private String qualifier;
 
+    /**
+     * Creates an empty version, with all components empty.
+     */
     public Version() {
         this(NumberWildcard.empty(), NumberWildcard.empty(), NumberWildcard.empty(), NumberWildcard.empty(), "");
     }
 
+    /**
+     * Creates a version with all components specified
+     *
+     * @param major     Major version
+     * @param minor     Minor version
+     * @param micro     Micro version
+     * @param patch     Patch version
+     * @param qualifier Qualifier. A version number with a qualifier will always be considered lower than a version number without a qualifier
+     * @throws IllegalArgumentException When nonempty components follow a wildcard or empty component
+     */
     public Version(@Nonnull NumberWildcard major, @Nonnull NumberWildcard minor, @Nonnull NumberWildcard micro,
             @Nonnull NumberWildcard patch, @Nonnull String qualifier) {
         this.major = major;
@@ -116,6 +145,15 @@ public class Version implements Comparable<Version>, Serializable {
         return new Version(major, minor, micro, patch, qualifier);
     }
 
+    /**
+     * Checks if this version matches an other version or version constraint
+     * <p>
+     * If the other version is a normal version, they match only if both versions are identical.
+     * <p>
+     * If the other version is a constraint, they match if all parts before the wildcard are identical.
+     *
+     * @param other The version/version constraint to match against
+     */
     public boolean matches(@Nonnull Version other) {
         if (!getMajor().contains(other.getMajor())) {
             return false;
@@ -158,6 +196,20 @@ public class Version implements Comparable<Version>, Serializable {
         return string;
     }
 
+    /**
+     * Compares this version to an other version
+     * <p>
+     * Components are compared in the order MAJOR, MINOR, MICRO, PATCH
+     * Numeric components are compared by numeric value.
+     * A wildcard component is always larger than a numeric component.
+     * <p>
+     * A version number with a qualifier is considered lower than a version number without qualifier.
+     * If both version numbers have a qualifier, they are compared with {@link String#compareToIgnoreCase(String)}
+     *
+     * @return A number smaller than 0 if this version is smaller than the other version.
+     * A number larger than 0 if this version is larger than the other version
+     * 0 if both versions are equal
+     */
     @Override
     public int compareTo(@Nonnull Version version) {
         if (!major.equals(version.major)) {
@@ -183,6 +235,11 @@ public class Version implements Comparable<Version>, Serializable {
         return qualifier.compareToIgnoreCase(version.qualifier);
     }
 
+    /**
+     * Checks if this version is exactly equal to an other version
+     * <p>
+     * numeric/wildcard components are compared strictly. The qualifier is compared case insensitively.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -220,6 +277,14 @@ public class Version implements Comparable<Version>, Serializable {
     }
 
 
+    /**
+     * Creates a version from a string.
+     * <p>
+     * MAJOR, MINOR and MICRO and PATCH components must be numeric, the wildcard <code>+</code>, or a number followed by <code>+</code>.
+     * MAJOR, MINOR and MICRO components are separated with <code>.</code>
+     * The PATCH component, if present, may be separated with <code>.</code> or <code>_</code>
+     * The QUALIFIER component, if present, may be separated with <code>.</code> or <code>-</code> and has no formatting constraints
+     */
     @Nonnull
     public static Version parse(@Nonnull String version) {
         Scanner scanner = new Scanner(version);

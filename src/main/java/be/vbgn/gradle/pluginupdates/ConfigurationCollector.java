@@ -1,6 +1,5 @@
-package be.vbgn.gradle.pluginupdates.internal;
+package be.vbgn.gradle.pluginupdates;
 
-import be.vbgn.gradle.pluginupdates.ConfigurationPlugin;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerBuilderConfiguration;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerConfigurationImpl;
 import java.io.ByteArrayInputStream;
@@ -19,7 +18,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.PluginAware;
 
-public class ConfigurationCollector {
+class ConfigurationCollector {
     private static final Logger LOGGER = Logging.getLogger(ConfigurationCollector.class);
     private Gradle gradle;
     private UpdateCheckerBuilderConfiguration globalConfiguration = null;
