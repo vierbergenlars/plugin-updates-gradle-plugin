@@ -21,7 +21,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
 
 class UpdateChecker {
-    private static Logger LOGGER = Logging.getLogger(UpdateChecker.class);
+
+    private static final Logger LOGGER = Logging.getLogger(UpdateChecker.class);
     private Gradle gradle;
     private ConfigurationCollector configurationCollector;
     private boolean invalidResolvesCacheChecked = false;
