@@ -172,5 +172,31 @@ public class UpdatePolicyImplTest {
         )));
     }
 
+    @Test
+    public void ignoresAndRenames() {
+
+        UpdatePolicyImpl updatePolicy = new UpdatePolicyImpl();
+        updatePolicy.rename("eu.xenit.gradle:alfresco-sdk").to("org.gradle:gradle-hello-world-plugin");
+        updatePolicy.ignore("org.gradle:gradle-hello-world-plugin").majorUpdates();
+
+        VersionProvider versionProvider = updatePolicy.buildVersionProvider(new DefaultVersionProvider());
+
+        UpdateFinder updateFinder = updatePolicy.buildUpdateFinder(new UpdateFinder() {
+            @Nonnull
+            @Override
+            public Stream<Dependency> findUpdates(@Nonnull Dependency dependency) {
+                return versionProvider.getUpdateVersions(dependency)
+                        .map(failureAllowedVersion -> dependency.withVersion(failureAllowedVersion.getVersion()));
+            }
+        });
+
+        List<Dependency> dependencies = updateFinder
+                .findUpdates(new DefaultDependency("eu.xenit.gradle", "alfresco-sdk", "0.1.3"))
+                .collect(Collectors.toList());
+
+        assertEquals(1, dependencies.size());
+        assertEquals(new DefaultDependency("org.gradle", "gradle-hello-world-plugin", "+"), dependencies.get(0));
+    }
+
 
 }
