@@ -79,7 +79,10 @@ public interface Dependency extends ModuleIdentifier {
      *
      * @param version The new version identifier to use
      * @return A new {@link Dependency} instance with the {@link #getVersion()} replaced with a new value
-     * @implNote This default implementation uses {@link Version#parse(String)} and {@link #withVersion(Version)} to set the version
+     *
+     * <b>Implementation note</b>
+     *
+     * This default implementation uses {@link Version#parse(String)} and {@link #withVersion(Version)} to set the version
      */
     @Nonnull
     default Dependency withVersion(String version) {

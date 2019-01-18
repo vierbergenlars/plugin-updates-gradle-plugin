@@ -51,7 +51,9 @@ public class NumberWildcard implements Comparable<NumberWildcard>, Serializable 
     /**
      * Creates a wildcard
      *
-     * @implNote The wildcard instance is a singleton.
+     * <b>Implementation note</b>
+     *
+     * The wildcard instance is a singleton.
      * Because there are other ways to create a wildcard, this should not be relied on for comparison.
      */
     @Nonnull
@@ -64,7 +66,9 @@ public class NumberWildcard implements Comparable<NumberWildcard>, Serializable 
      * <p>
      * An empty {@linkplain NumberWildcard} signifies the absence of any value. It contains neither a number, nor is a wildcard.
      *
-     * @implNote The empty instance is a singleton.
+     * <b>Implementation note</b>
+     *
+     * The empty instance is a singleton.
      * Because there are other ways to create an empty, this should not be relied on for comparison.
      */
     @Nonnull

@@ -37,7 +37,9 @@ public class InvalidResolvesCache {
     /**
      * File cache that contains the {@link #persistentIndexedCache}
      *
-     * @implNote Directly manipulated by {@link #openCache()} and {@link #closeCache()}.
+     * <b>Implementation note</b>
+     *
+     * Directly manipulated by {@link #openCache()} and {@link #closeCache()}.
      * Other usages should use the higher-level {@link #withCache(Function)} method
      */
     private PersistentCache openedCache;
@@ -65,7 +67,10 @@ public class InvalidResolvesCache {
      * Opens the invalid resolves cache
      *
      * @throws CacheOpenException When the cache can not be opened
-     * @implNote This method is not thread safe and may only be called while holding a lock
+     *
+     * <b>Implementation note</b>
+     *
+     * This method is not thread safe and may only be called while holding a lock
      */
     private void openCache() throws CacheOpenException {
         if(openedCache == null) {
@@ -83,7 +88,8 @@ public class InvalidResolvesCache {
     /**
      * Closes the invalid resolves cache
      *
-     * @implNote This method is not thread safe and may only be called while holding a lock
+     * <b>Implementation note</b>
+     * This method is not thread safe and may only be called while holding a lock
      */
     private void closeCache() {
         if(openedCache != null) {
