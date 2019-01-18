@@ -1,4 +1,4 @@
-# Plugin updates plugin [![Build Status](https://travis-ci.org/vierbergenlars/plugin-updates-gradle-plugin.svg?branch=master)](https://travis-ci.org/vierbergenlars/plugin-updates-gradle-plugin)
+# Plugin updates plugin [![Build Status](https://travis-ci.org/vierbergenlars/plugin-updates-gradle-plugin.svg?branch=master)](https://travis-ci.org/vierbergenlars/plugin-updates-gradle-plugin) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=vierbergenlars_plugin-updates-gradle-plugin&metric=alert_status)](https://sonarcloud.io/dashboard?id=vierbergenlars_plugin-updates-gradle-plugin)
 
 A gradle plugin that checks for updates of your gradle plugins.
 
