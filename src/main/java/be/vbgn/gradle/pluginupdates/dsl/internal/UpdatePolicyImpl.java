@@ -3,12 +3,10 @@ package be.vbgn.gradle.pluginupdates.dsl.internal;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dsl.IgnoreSpec;
 import be.vbgn.gradle.pluginupdates.dsl.RenameSpec;
-import be.vbgn.gradle.pluginupdates.dsl.UpdatePolicy;
 import be.vbgn.gradle.pluginupdates.update.finder.FailureAllowedVersion;
 import be.vbgn.gradle.pluginupdates.update.finder.RenamedModuleFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.UpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,7 +19,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
-public class UpdatePolicyImpl implements UpdatePolicy, UpdateBuilder, Serializable {
+public class UpdatePolicyImpl implements UpdateBuilder {
 
     private Set<ModuleIgnoreSpec> moduleIgnoreSpecs = new HashSet<>();
     private Set<DependencyIgnoreSpec> dependencyIgnoreSpecs = new HashSet<>();

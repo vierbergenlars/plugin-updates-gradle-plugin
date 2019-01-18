@@ -1,6 +1,7 @@
 package be.vbgn.gradle.pluginupdates.dsl;
 
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
+import java.io.Serializable;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -14,7 +15,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
  * <li>specify modules that have been renamed with {@link #rename(String)} and {@link #rename(Map)}
  * </ul>
  */
-public interface UpdatePolicy {
+public interface UpdatePolicy extends Serializable {
 
     /**
      * Ignores all versions of a module
