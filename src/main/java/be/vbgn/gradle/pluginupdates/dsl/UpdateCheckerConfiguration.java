@@ -16,7 +16,7 @@ import org.gradle.util.ConfigureUtil;
  *          // suggested as a replacement of any version of eu.xenit.gradle:xenit-gradle-plugins
  *          rename "eu.xenit.gradle:xenit-gradle-plugins" to "eu.xenit.gradle:alfresco-docker-plugin"
  *
- *          // Change the group and name of a plugin. Any version >= 0.1.4 of eu.xenit.gradle:alfresco-sdk will be
+ *          // Change the group and name of a plugin. Any version &gt;= 0.1.4 of eu.xenit.gradle:alfresco-sdk will be
  *          // suggested as a replacement of any version of eu.xenit.gradle.plugins:ampde_gradle_plugin
  *          rename "eu.xenit.gradle.plugins:ampde_gradle_plugin" to "eu.xenit.gradle:alfresco-sdk:0.1.4+"
  *
