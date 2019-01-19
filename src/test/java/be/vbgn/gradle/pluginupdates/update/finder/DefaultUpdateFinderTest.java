@@ -11,7 +11,8 @@ import be.vbgn.gradle.pluginupdates.dependency.DefaultDependency;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
-import be.vbgn.gradle.pluginupdates.update.finder.internal.InvalidResolvesCache;
+import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesCache;
+import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesCacheImpl;
 import be.vbgn.gradle.pluginupdates.version.Version;
 import java.util.Comparator;
 import java.util.List;
@@ -78,7 +79,7 @@ public class DefaultUpdateFinderTest {
         DefaultUpdateFinder updateChecker = new DefaultUpdateFinder(project.getBuildscript(),
                 new DefaultVersionProvider());
 
-        InvalidResolvesCache invalidResolvesCacheMock = Mockito.mock(InvalidResolvesCache.class);
+        InvalidResolvesCache invalidResolvesCacheMock = Mockito.mock(InvalidResolvesCacheImpl.class);
         updateChecker.setInvalidResolvesCache(invalidResolvesCacheMock);
         // Say that nothing is cached
         when(invalidResolvesCacheMock.get(any(Dependency.class))).thenReturn(Optional.empty());
@@ -109,7 +110,7 @@ public class DefaultUpdateFinderTest {
         DefaultUpdateFinder updateChecker = new DefaultUpdateFinder(project.getBuildscript(),
                 new DefaultVersionProvider());
 
-        InvalidResolvesCache invalidResolvesCacheMock = Mockito.mock(InvalidResolvesCache.class);
+        InvalidResolvesCache invalidResolvesCacheMock = Mockito.mock(InvalidResolvesCacheImpl.class);
         updateChecker.setInvalidResolvesCache(invalidResolvesCacheMock);
         Dependency original = new DefaultDependency("org.gradle", "gradle-hello-world-plugin", "0.1");
         // Say that nothing is cached

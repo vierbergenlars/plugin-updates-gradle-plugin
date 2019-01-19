@@ -1,4 +1,4 @@
-package be.vbgn.gradle.pluginupdates.update.finder.internal;
+package be.vbgn.gradle.pluginupdates.update.resolver.internal;
 
 import static be.vbgn.gradle.pluginupdates.TestUtil.writeFile;
 import static org.junit.Assume.assumeTrue;
@@ -29,7 +29,7 @@ public class InvalidResolvesCacheTest extends AbstractIntegrationTest {
         assumeTrue("Gradle version is at least 4.3.0",
                 Version.parse(gradleVersion).compareTo(Version.parse("4.3")) >= 0);
         writeFile(buildFile,
-                "import be.vbgn.gradle.pluginupdates.update.finder.internal.InvalidResolvesCache\n"
+                "import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesCacheImpl\n"
                         + "import be.vbgn.gradle.pluginupdates.dsl.Util\n"
                         + "import org.gradle.cache.CacheRepository\n"
                         + "import java.util.concurrent.*\n"
@@ -38,7 +38,7 @@ public class InvalidResolvesCacheTest extends AbstractIntegrationTest {
                         + "id 'be.vbgn.plugin-updates.config'"
                         + "}\n"
                         + "def cacheRepository = gradle.getServices().get(CacheRepository.class);\n"
-                        + "def invalidResolvesCache = new InvalidResolvesCache(cacheRepository);\n"
+                        + "def invalidResolvesCache = new InvalidResolvesCacheImpl(cacheRepository);\n"
                         + "def threadPool = Executors.newFixedThreadPool(80);\n"
                         + "def dependency = Util.createDependency('be.vbgn.gradle:test-dependency:1.2.3');"
                         + ""

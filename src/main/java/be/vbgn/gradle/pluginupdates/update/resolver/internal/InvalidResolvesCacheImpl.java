@@ -1,4 +1,4 @@
-package be.vbgn.gradle.pluginupdates.update.finder.internal;
+package be.vbgn.gradle.pluginupdates.update.resolver.internal;
 
 import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
@@ -22,12 +22,9 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 
-/**
- * Keeps a cache of dependencies for which resolving has failed, so they are not resolved every time
- */
-public class InvalidResolvesCache {
+public class InvalidResolvesCacheImpl implements InvalidResolvesCache {
 
-    private static final Logger LOGGER = Logging.getLogger(InvalidResolvesCache.class);
+    private static final Logger LOGGER = Logging.getLogger(InvalidResolvesCacheImpl.class);
 
     /**
      * Cache builder that is used to create an indexed key-value cache {@link #persistentIndexedCache} when needed
@@ -51,11 +48,11 @@ public class InvalidResolvesCache {
 
     private long maxAge;
 
-    public InvalidResolvesCache(CacheRepository cacheRepository) {
+    public InvalidResolvesCacheImpl(CacheRepository cacheRepository) {
         this(cacheRepository, TimeUnit.DAYS.toNanos(1));
     }
 
-    public InvalidResolvesCache(CacheRepository cacheRepository, long maxAge) {
+    public InvalidResolvesCacheImpl(CacheRepository cacheRepository, long maxAge) {
         this.cacheBuilder = cacheRepository.cache("be.vbgn.gradle.pluginupdates")
                 .withCrossVersionCache(LockTarget.DefaultTarget)
                 .withLockOptions(LockOptionsBuilder.mode(LockMode.Exclusive))
@@ -123,11 +120,7 @@ public class InvalidResolvesCache {
         }
     }
 
-    /**
-     * Places a new dependency in the failed resolves cache.
-     *
-     * @param dependency The dependency that has to be added to the list of failed resolves
-     */
+    @Override
     public void put(Dependency dependency) {
         LOGGER.debug("Adding failed dependency {} to cache", dependency);
         withCache((cache) -> {
@@ -136,14 +129,7 @@ public class InvalidResolvesCache {
         });
     }
 
-    /**
-     * Tries to fetch a {@link FailedDependency} from cache for a {@link Dependency} that has failed.
-     * <p>
-     * Failures are only kept for a limited time, and are cleaned up after they have expired.
-     *
-     * @param dependency The dependency to look up a failure for
-     * @return A failed dependency, or {@link Optional#empty()} when no failed dependency is found or its cache time has expired
-     */
+    @Override
     public Optional<FailedDependency> get(Dependency dependency) {
         Date cacheValue = withCache((cache) -> cache.get(dependency));
         if (cacheValue == null) {

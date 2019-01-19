@@ -8,10 +8,11 @@ import be.vbgn.gradle.pluginupdates.update.finder.DefaultUpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.DefaultVersionProvider;
 import be.vbgn.gradle.pluginupdates.update.finder.UpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
-import be.vbgn.gradle.pluginupdates.update.finder.internal.InvalidResolvesCache;
 import be.vbgn.gradle.pluginupdates.update.resolver.DefaultDependencyResolver;
 import be.vbgn.gradle.pluginupdates.update.resolver.DependencyResolver;
 import be.vbgn.gradle.pluginupdates.update.resolver.FailureCachingDependencyResolver;
+import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesCache;
+import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesCacheImpl;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -73,7 +74,7 @@ class UpdateChecker {
                     .get(CacheRepository.class);
             try {
                 if(classExists("org.gradle.cache.LockOptions")) {
-                    invalidResolvesCache = new InvalidResolvesCache(cacheRepository);
+                    invalidResolvesCache = new InvalidResolvesCacheImpl(cacheRepository);
                 }
             } catch (NoClassDefFoundError e) {
                 LOGGER.warn(

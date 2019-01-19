@@ -2,7 +2,7 @@ package be.vbgn.gradle.pluginupdates.update.resolver;
 
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
-import be.vbgn.gradle.pluginupdates.update.finder.internal.InvalidResolvesCache;
+import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesCache;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.gradle.api.logging.Logger;
