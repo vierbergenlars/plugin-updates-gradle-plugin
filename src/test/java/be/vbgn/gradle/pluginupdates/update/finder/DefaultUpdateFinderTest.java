@@ -89,6 +89,8 @@ public class DefaultUpdateFinderTest {
         assertTrue(updates.stream().noneMatch(dependency -> dependency instanceof FailedDependency));
 
         // The nonexisting version is attemted to be fetched from cache
+        verify(invalidResolvesCacheMock).get(original.withVersion("+"));
+        verify(invalidResolvesCacheMock).get(original.withVersion("0.+"));
         verify(invalidResolvesCacheMock).get(original.withVersion("0.1.+"));
         // Check that the nonexisting version was put in the cache
         verify(invalidResolvesCacheMock).put(original.withVersion("0.1.+"));
@@ -122,6 +124,8 @@ public class DefaultUpdateFinderTest {
         assertTrue(updates.stream().noneMatch(dependency -> dependency instanceof FailedDependency));
 
         // The allowed failure version is fetched from cache
+        verify(invalidResolvesCacheMock).get(original.withVersion("+"));
+        verify(invalidResolvesCacheMock).get(original.withVersion("0.+"));
         verify(invalidResolvesCacheMock).get(original.withVersion("0.1.+"));
         // And that's it, since it was loaded from cache it was not put back in
         verifyNoMoreInteractions(invalidResolvesCacheMock);
