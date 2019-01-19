@@ -9,6 +9,9 @@ import be.vbgn.gradle.pluginupdates.update.finder.DefaultVersionProvider;
 import be.vbgn.gradle.pluginupdates.update.finder.UpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
 import be.vbgn.gradle.pluginupdates.update.finder.internal.InvalidResolvesCache;
+import be.vbgn.gradle.pluginupdates.update.resolver.DefaultDependencyResolver;
+import be.vbgn.gradle.pluginupdates.update.resolver.DependencyResolver;
+import be.vbgn.gradle.pluginupdates.update.resolver.FailureCachingDependencyResolver;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,18 +41,19 @@ class UpdateChecker {
         UpdateCheckerBuilderConfiguration updateCheckerBuilderConfiguration = configurationCollector.forProject(project);
         UpdateBuilder updateBuilder = updateCheckerBuilderConfiguration.getUpdateBuilder();
         VersionProvider versionProvider = updateBuilder.buildVersionProvider(new DefaultVersionProvider());
-        DefaultUpdateFinder defaultUpdateFinder = new DefaultUpdateFinder(project.getBuildscript(),
-                versionProvider);
-        UpdateFinder updateFinder = updateBuilder.buildUpdateFinder(defaultUpdateFinder);
+        DependencyResolver defaultDependencyResolver = new DefaultDependencyResolver(project.getBuildscript());
 
+        DependencyResolver dependencyResolver = getInvalidResolvesCache()
+                .<DependencyResolver>map(invalidResolvesCache1 -> {
+                    return new FailureCachingDependencyResolver(defaultDependencyResolver, invalidResolvesCache1);
+                })
+                .orElse(defaultDependencyResolver);
+
+        UpdateFinder updateFinder = updateBuilder
+                .buildUpdateFinder(new DefaultUpdateFinder(dependencyResolver, versionProvider));
         DefaultUpdateChecker updateChecker = new DefaultUpdateChecker(updateFinder);
 
-        getInvalidResolvesCache()
-                .ifPresent(defaultUpdateFinder::setInvalidResolvesCache);
-
-        List<Update> updates = updateChecker.getUpdates(configuration).collect(Collectors.toList());
-
-        return updates;
+        return updateChecker.getUpdates(configuration).collect(Collectors.toList());
 
     }
 

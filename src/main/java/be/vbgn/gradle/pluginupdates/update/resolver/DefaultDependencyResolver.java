@@ -5,10 +5,12 @@ import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
 import java.util.stream.Stream;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -16,6 +18,14 @@ public class DefaultDependencyResolver implements DependencyResolver {
     private static final Logger LOGGER = Logging.getLogger(DefaultDependencyResolver.class);
     private DependencyHandler dependencyHandler;
     private ConfigurationContainer configurationContainer;
+
+    public DefaultDependencyResolver(ScriptHandler scriptHandler) {
+        this(scriptHandler.getDependencies(), scriptHandler.getConfigurations());
+    }
+
+    public DefaultDependencyResolver(Project project) {
+        this(project.getDependencies(), project.getConfigurations());
+    }
 
     public DefaultDependencyResolver(DependencyHandler dependencyHandler,
             ConfigurationContainer configurationContainer) {
