@@ -22,6 +22,9 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 
+/**
+ * Keeps a cache of dependencies for which resolving has failed, so they are not resolved every time
+ */
 public class InvalidResolvesGradleCache implements InvalidResolvesCache {
 
     private static final Logger LOGGER = Logging.getLogger(InvalidResolvesGradleCache.class);
@@ -31,6 +34,11 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
      */
     @Nonnull
     private CacheBuilder cacheBuilder;
+
+    /**
+     * Persistent indexed cache parameters for the {@link #persistentIndexedCache}
+     */
+    private PersistentIndexedCacheParameters<Dependency, Date> persistentIndexedCacheParameters;
 
     private long maxAge;
 
@@ -44,6 +52,8 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
                 .withLockOptions(LockOptionsBuilder.mode(LockMode.Exclusive))
                 .withProperties(Collections.singletonMap("cacheVersion", "2"));
         this.maxAge = maxAge;
+        persistentIndexedCacheParameters = new PersistentIndexedCacheParameters<>(
+                "invalidResolves", Dependency.class, Date.class);
     }
 
     /**
