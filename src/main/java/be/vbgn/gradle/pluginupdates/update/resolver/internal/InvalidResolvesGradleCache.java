@@ -32,23 +32,6 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
     @Nonnull
     private CacheBuilder cacheBuilder;
 
-    /**
-     * File cache that contains the {@link #persistentIndexedCache}
-     *
-     * <b>Implementation note</b>
-     *
-     * Directly manipulated by {@link #openCache()} and {@link #closeCache()}.
-     * Other usages should use the higher-level {@link #withCache(Function)} method
-     */
-    @Nullable
-    private PersistentCache openedCache;
-
-    /**
-     * Key-value cache that keeps track of dependencies that have failed to resolve
-     */
-    @Nullable
-    private PersistentIndexedCache<Dependency, Date> persistentIndexedCache;
-
     private long maxAge;
 
     public InvalidResolvesGradleCache(@Nonnull CacheRepository cacheRepository) {
@@ -64,43 +47,6 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
     }
 
     /**
-     * Opens the invalid resolves cache
-     *
-     * @throws CacheOpenException When the cache can not be opened
-     *
-     * <b>Implementation note</b>
-     *
-     * This method is not thread safe and may only be called while holding a lock
-     */
-    private void openCache() {
-        if(openedCache == null) {
-            openedCache = cacheBuilder.open();
-            LOGGER.debug("Opened cache {}", openedCache);
-        }
-        if(persistentIndexedCache == null) {
-            PersistentIndexedCacheParameters<Dependency, Date> cacheParameters = new PersistentIndexedCacheParameters<>(
-                    "invalidResolves", Dependency.class, Date.class);
-            persistentIndexedCache = openedCache.createCache(cacheParameters);
-            LOGGER.debug("Opened indexed cache {} with parameters {}", persistentIndexedCache, cacheParameters);
-        }
-    }
-
-    /**
-     * Closes the invalid resolves cache
-     *
-     * <b>Implementation note</b>
-     * This method is not thread safe and may only be called while holding a lock
-     */
-    private void closeCache() {
-        if(openedCache != null) {
-            openedCache.close();
-        }
-        openedCache = null;
-        persistentIndexedCache = null;
-    }
-
-
-    /**
      * Runs an operation on the cache
      * <p>
      * Automatically opens the cache before the operation starts, and closes it after the operation has ended
@@ -111,15 +57,23 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
      */
     @Nullable
     private synchronized <T> T withCache(@Nonnull Function<PersistentIndexedCache<Dependency, Date>, T> cacheHandler) {
+        PersistentCache openedCache = null;
         try {
-            openCache();
+            openedCache = cacheBuilder.open();
+            LOGGER.debug("Opened cache {}", openedCache);
+            PersistentIndexedCacheParameters<Dependency, Date> cacheParameters = new PersistentIndexedCacheParameters<>(
+                    "invalidResolves", Dependency.class, Date.class);
+            PersistentIndexedCache<Dependency, Date> persistentIndexedCache = openedCache.createCache(cacheParameters);
+            LOGGER.debug("Opened indexed cache {} with parameters {}", persistentIndexedCache, cacheParameters);
             return openedCache.useCache(() -> cacheHandler.apply(persistentIndexedCache));
         } catch (CacheOpenException e) {
             LOGGER.warn("Invalid resolves cache could not be opened. Skipping use of cache.");
             LOGGER.debug("Full stacktrace for above warning", e);
             return null;
         } finally {
-            closeCache();
+            if (openedCache != null) {
+                openedCache.close();
+            }
         }
     }
 
