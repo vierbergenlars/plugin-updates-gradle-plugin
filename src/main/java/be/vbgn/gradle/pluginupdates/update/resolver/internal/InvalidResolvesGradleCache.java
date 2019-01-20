@@ -29,6 +29,7 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
     /**
      * Cache builder that is used to create an indexed key-value cache {@link #persistentIndexedCache} when needed
      */
+    @Nonnull
     private CacheBuilder cacheBuilder;
 
     /**
@@ -39,20 +40,22 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
      * Directly manipulated by {@link #openCache()} and {@link #closeCache()}.
      * Other usages should use the higher-level {@link #withCache(Function)} method
      */
+    @Nullable
     private PersistentCache openedCache;
 
     /**
      * Key-value cache that keeps track of dependencies that have failed to resolve
      */
+    @Nullable
     private PersistentIndexedCache<Dependency, Date> persistentIndexedCache;
 
     private long maxAge;
 
-    public InvalidResolvesGradleCache(CacheRepository cacheRepository) {
-        this(cacheRepository, TimeUnit.DAYS.toNanos(1));
+    public InvalidResolvesGradleCache(@Nonnull CacheRepository cacheRepository) {
+        this(cacheRepository, TimeUnit.DAYS.toMillis(1));
     }
 
-    public InvalidResolvesGradleCache(CacheRepository cacheRepository, long maxAge) {
+    public InvalidResolvesGradleCache(@Nonnull CacheRepository cacheRepository, long maxAge) {
         this.cacheBuilder = cacheRepository.cache("be.vbgn.gradle.pluginupdates")
                 .withCrossVersionCache(LockTarget.DefaultTarget)
                 .withLockOptions(LockOptionsBuilder.mode(LockMode.Exclusive))
