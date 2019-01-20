@@ -13,8 +13,8 @@ import be.vbgn.gradle.pluginupdates.update.resolver.DependencyResolver;
 import be.vbgn.gradle.pluginupdates.update.resolver.FailureCachingDependencyResolver;
 import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesCache;
 import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesGradleCache;
+import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesMemoryCache;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -29,7 +29,6 @@ class UpdateChecker {
     private static final Logger LOGGER = Logging.getLogger(UpdateChecker.class);
     private Gradle gradle;
     private ConfigurationCollector configurationCollector;
-    private boolean invalidResolvesCacheChecked = false;
     private InvalidResolvesCache invalidResolvesCache = null;
 
 
@@ -43,15 +42,11 @@ class UpdateChecker {
         UpdateBuilder updateBuilder = updateCheckerBuilderConfiguration.getUpdateBuilder();
         VersionProvider versionProvider = updateBuilder.buildVersionProvider(new DefaultVersionProvider());
         DependencyResolver defaultDependencyResolver = new DefaultDependencyResolver(project.getBuildscript());
-
-        DependencyResolver dependencyResolver = getInvalidResolvesCache()
-                .<DependencyResolver>map(invalidResolvesCache1 -> {
-                    return new FailureCachingDependencyResolver(defaultDependencyResolver, invalidResolvesCache1);
-                })
-                .orElse(defaultDependencyResolver);
+        DependencyResolver cachedDependencyResolver = new FailureCachingDependencyResolver(defaultDependencyResolver,
+                getInvalidResolvesCache());
 
         UpdateFinder updateFinder = updateBuilder
-                .buildUpdateFinder(new DefaultUpdateFinder(dependencyResolver, versionProvider));
+                .buildUpdateFinder(new DefaultUpdateFinder(cachedDependencyResolver, versionProvider));
         DefaultUpdateChecker updateChecker = new DefaultUpdateChecker(updateFinder);
 
         return updateChecker.getUpdates(configuration).collect(Collectors.toList());
@@ -67,14 +62,15 @@ class UpdateChecker {
         }
     }
 
-    private Optional<InvalidResolvesCache> getInvalidResolvesCache() {
-        if (!invalidResolvesCacheChecked) {
-            invalidResolvesCacheChecked = true;
+    private InvalidResolvesCache getInvalidResolvesCache() {
+        if (invalidResolvesCache == null) {
             CacheRepository cacheRepository = ((GradleInternal) gradle).getServices()
                     .get(CacheRepository.class);
             try {
                 if(classExists("org.gradle.cache.LockOptions")) {
                     invalidResolvesCache = new InvalidResolvesGradleCache(cacheRepository);
+                } else {
+                    invalidResolvesCache = new InvalidResolvesMemoryCache();
                 }
             } catch (NoClassDefFoundError e) {
                 LOGGER.warn(
@@ -82,6 +78,6 @@ class UpdateChecker {
                 LOGGER.debug("Full exception for above warning", e);
             }
         }
-        return Optional.ofNullable(invalidResolvesCache);
+        return invalidResolvesCache;
     }
 }
