@@ -22,9 +22,9 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 
-public class InvalidResolvesCacheImpl implements InvalidResolvesCache {
+public class InvalidResolvesGradleCache implements InvalidResolvesCache {
 
-    private static final Logger LOGGER = Logging.getLogger(InvalidResolvesCacheImpl.class);
+    private static final Logger LOGGER = Logging.getLogger(InvalidResolvesGradleCache.class);
 
     /**
      * Cache builder that is used to create an indexed key-value cache {@link #persistentIndexedCache} when needed
@@ -48,11 +48,11 @@ public class InvalidResolvesCacheImpl implements InvalidResolvesCache {
 
     private long maxAge;
 
-    public InvalidResolvesCacheImpl(CacheRepository cacheRepository) {
+    public InvalidResolvesGradleCache(CacheRepository cacheRepository) {
         this(cacheRepository, TimeUnit.DAYS.toNanos(1));
     }
 
-    public InvalidResolvesCacheImpl(CacheRepository cacheRepository, long maxAge) {
+    public InvalidResolvesGradleCache(CacheRepository cacheRepository, long maxAge) {
         this.cacheBuilder = cacheRepository.cache("be.vbgn.gradle.pluginupdates")
                 .withCrossVersionCache(LockTarget.DefaultTarget)
                 .withLockOptions(LockOptionsBuilder.mode(LockMode.Exclusive))
