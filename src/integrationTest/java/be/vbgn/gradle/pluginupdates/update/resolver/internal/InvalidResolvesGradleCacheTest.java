@@ -12,7 +12,7 @@ import org.gradle.testkit.runner.GradleRunner;
 import org.junit.Before;
 import org.junit.Test;
 
-public class InvalidResolvesCacheTest extends AbstractIntegrationTest {
+public class InvalidResolvesGradleCacheTest extends AbstractIntegrationTest {
 
     private File buildFile;
 

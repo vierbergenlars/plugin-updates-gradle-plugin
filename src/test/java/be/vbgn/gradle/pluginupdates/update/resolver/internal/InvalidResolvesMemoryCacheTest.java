@@ -21,7 +21,11 @@ public class InvalidResolvesMemoryCacheTest {
 
         assertTrue(invalidResolvesCache.get(dependency).isPresent());
 
-        assertEquals(dependency, invalidResolvesCache.get(dependency).get());
+        assertEquals(dependency.getGroup(), invalidResolvesCache.get(dependency).get().getGroup());
+        assertEquals(dependency.getName(), invalidResolvesCache.get(dependency).get().getName());
+        assertEquals(dependency.getVersion(), invalidResolvesCache.get(dependency).get().getVersion());
+        assertEquals(dependency.getClassifier(), invalidResolvesCache.get(dependency).get().getClassifier());
+        assertEquals(dependency.getType(), invalidResolvesCache.get(dependency).get().getType());
 
         Dependency otherDependency = new DefaultDependency("be.vbgn.gradle", "test2", "2.0.0");
 
