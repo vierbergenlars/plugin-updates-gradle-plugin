@@ -69,7 +69,7 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
      *
      * This method is not thread safe and may only be called while holding a lock
      */
-    private void openCache() throws CacheOpenException {
+    private void openCache() {
         if(openedCache == null) {
             openedCache = cacheBuilder.open();
             LOGGER.debug("Opened cache {}", openedCache);
@@ -123,7 +123,7 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
     @Override
     public void put(Dependency dependency) {
         LOGGER.debug("Adding failed dependency {} to cache", dependency);
-        withCache((cache) -> {
+        withCache(cache -> {
             cache.put(dependency, new Date());
             return null;
         });
@@ -131,7 +131,7 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
 
     @Override
     public Optional<FailedDependency> get(Dependency dependency) {
-        Date cacheValue = withCache((cache) -> cache.get(dependency));
+        Date cacheValue = withCache(cache -> cache.get(dependency));
         if (cacheValue == null) {
             LOGGER.debug("Could not find failed dependency for {} in cache", dependency);
             return Optional.empty();
