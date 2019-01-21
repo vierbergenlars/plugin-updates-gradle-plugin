@@ -11,6 +11,7 @@ import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
 import be.vbgn.gradle.pluginupdates.update.resolver.DefaultDependencyResolver;
 import be.vbgn.gradle.pluginupdates.update.resolver.DependencyResolver;
 import be.vbgn.gradle.pluginupdates.update.resolver.FailureCachingDependencyResolver;
+import be.vbgn.gradle.pluginupdates.update.resolver.internal.CacheNotAvailableException;
 import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesCache;
 import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesGradleCache;
 import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesMemoryCache;
@@ -27,6 +28,7 @@ import org.gradle.cache.CacheRepository;
 class UpdateChecker {
 
     private static final Logger LOGGER = Logging.getLogger(UpdateChecker.class);
+    private static final String MISSING_CACHE_COMPONENT = "Some required gradle components are missing. Invalid resolves cache is disabled, which will slow down plugin update checks.";
     private Gradle gradle;
     private ConfigurationCollector configurationCollector;
     private InvalidResolvesCache invalidResolvesCache = null;
@@ -72,10 +74,10 @@ class UpdateChecker {
                 } else {
                     invalidResolvesCache = new InvalidResolvesMemoryCache();
                 }
-            } catch (NoClassDefFoundError e) {
-                LOGGER.warn(
-                        "Some required gradle classes are missing. Invalid resolves cache is disabled, which will slow down plugin update checks.");
+            } catch (NoClassDefFoundError | CacheNotAvailableException e) {
+                LOGGER.warn(MISSING_CACHE_COMPONENT);
                 LOGGER.debug("Full exception for above warning", e);
+                invalidResolvesCache = new InvalidResolvesMemoryCache();
             }
         }
         return invalidResolvesCache;

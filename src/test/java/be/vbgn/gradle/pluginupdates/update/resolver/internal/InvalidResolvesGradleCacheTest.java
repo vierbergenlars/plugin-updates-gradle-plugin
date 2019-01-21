@@ -27,12 +27,12 @@ public class InvalidResolvesGradleCacheTest extends AbstractResolvesMemoryCacheT
     }
 
     @Override
-    protected InvalidResolvesCache createInvalidResolvesCache() {
+    protected InvalidResolvesCache createInvalidResolvesCache() throws CacheNotAvailableException {
         return new InvalidResolvesGradleCache(getCacheRepository());
     }
 
     @Test
-    public void testCacheExpiry() throws InterruptedException {
+    public void testCacheExpiry() throws InterruptedException, CacheNotAvailableException {
         long cacheTime = TimeUnit.SECONDS.toMillis(1);
         InvalidResolvesCache invalidResolvesCache = new InvalidResolvesGradleCache(getCacheRepository(), cacheTime);
 

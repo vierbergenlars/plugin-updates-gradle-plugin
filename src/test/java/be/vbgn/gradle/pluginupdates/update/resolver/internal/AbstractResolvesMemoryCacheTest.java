@@ -9,9 +9,10 @@ import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import org.junit.Test;
 
 abstract public class AbstractResolvesMemoryCacheTest {
-    abstract protected InvalidResolvesCache createInvalidResolvesCache();
+
+    abstract protected InvalidResolvesCache createInvalidResolvesCache() throws CacheNotAvailableException;
     @Test
-    public void testCacheBehavior() {
+    public void testCacheBehavior() throws CacheNotAvailableException {
         InvalidResolvesCache invalidResolvesCache = createInvalidResolvesCache();
 
         Dependency dependency = new DefaultDependency("be.vbgn.gradle", "test", "1.0.0");
