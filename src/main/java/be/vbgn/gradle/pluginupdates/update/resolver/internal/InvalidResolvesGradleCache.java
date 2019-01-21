@@ -68,7 +68,7 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
         }
     }
 
-    @SuppressWarnings({"unchecked", "JavaReflectionMemberAccess", "JavaReflectionInvocation"})
+    @SuppressWarnings({"unchecked", "JavaReflectionMemberAccess"})
     private PersistentIndexedCacheParameters<Dependency, Date> createIndexedCacheParameters0()
             throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
         try {
@@ -76,7 +76,7 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
             Method constructionMethod = PersistentIndexedCacheParameters.class
                     .getMethod("of", String.class, Class.class, Class.class);
             return (PersistentIndexedCacheParameters) constructionMethod
-                    .invoke("invalidResolves", Dependency.class, Date.class);
+                    .invoke(null, "invalidResolves", Dependency.class, Date.class);
         } catch (NoSuchMethodException e) {
             // For gradle 4.3 - 5.0.+
             Constructor<PersistentIndexedCacheParameters> constructionMethod = PersistentIndexedCacheParameters.class
