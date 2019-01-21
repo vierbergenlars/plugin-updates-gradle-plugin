@@ -106,8 +106,8 @@ public class IntegrationTest extends AbstractIntegrationTest {
         BuildResult buildResult = buildProject(integrationTests.resolve("pluginUpdates-policy-settings"), "clean");
 
         Version gradleVersionInst = Version.parse(gradleVersion);
-        // Gradle versions <= 4.3 do not have the required api to read settings configuration
-        if (gradleVersionInst.compareTo(Version.parse("4.3")) > 0) {
+        // Gradle versions < 4.4 do not have the required api to read settings configuration
+        if (gradleVersionInst.compareTo(Version.parse("4.4")) >= 0) {
             String[] outputLines = buildResult.getOutput().split("\n");
             List<String> pluginOutdatedLines = Arrays.stream(outputLines)
                     .filter(line -> line.startsWith("Plugin is outdated"))
@@ -130,8 +130,8 @@ public class IntegrationTest extends AbstractIntegrationTest {
      */
     @Test
     public void warnOnceAboutUnsupportedSettings() throws IOException {
-        // Gradle versions < 4.3 do not have the required api to read settings configuration
-        assumeTrue("Gradle version is at most 4.3", Version.parse(gradleVersion).compareTo(Version.parse("4.3")) < 0);
+        // Gradle versions < 4.4 do not have the required api to read settings configuration
+        assumeTrue("Gradle version is at most 4.3", Version.parse(gradleVersion).compareTo(Version.parse("4.4")) < 0);
 
         BuildResult buildResult = buildProject(integrationTests.resolve("subprojects"), "clean");
 

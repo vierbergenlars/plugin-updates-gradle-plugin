@@ -20,7 +20,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 abstract public class AbstractIntegrationTest {
 
-    @Parameters
+    @Parameters(name = "Gradle v{0}")
     public static Collection<Object[]> testData() {
         return Arrays.asList(new Object[][]{
                 {"5.1.1"},
@@ -48,8 +48,6 @@ abstract public class AbstractIntegrationTest {
 
     protected BuildResult buildProject(Path projectFolder, String task) throws IOException {
         FileUtils.copyDirectory(projectFolder.toFile(), testProjectDir.getRoot());
-        System.out.println("Using gradle version " + gradleVersion);
-        System.out.flush();
         return GradleRunner.create()
                 .withProjectDir(testProjectDir.getRoot().toPath().resolve("project").toFile())
                 .withGradleVersion(gradleVersion)
