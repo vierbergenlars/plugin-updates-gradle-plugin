@@ -67,6 +67,7 @@ public class InvalidResolvesGradleCacheTest extends AbstractIntegrationTest {
                 .withProjectDir(testProjectDir.getRoot())
                 .withGradleVersion(gradleVersion)
                 .withArguments("runThreadPool")
+                .withDebug(true)
                 .build();
 
         assertOutputNotContains(buildResult, "Invalid resolves cache could not be opened.");

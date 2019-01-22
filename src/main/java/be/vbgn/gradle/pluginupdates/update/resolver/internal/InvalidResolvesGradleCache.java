@@ -3,6 +3,9 @@ package be.vbgn.gradle.pluginupdates.update.resolver.internal;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
@@ -22,28 +25,65 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 
+/**
+ * Keeps a cache of dependencies for which resolving has failed, so they are not resolved every time
+ */
 public class InvalidResolvesGradleCache implements InvalidResolvesCache {
 
     private static final Logger LOGGER = Logging.getLogger(InvalidResolvesGradleCache.class);
 
     /**
-     * Cache builder that is used to create an indexed key-value cache {@link #persistentIndexedCache} when needed
+     * Cache builder that is used to create an indexed key-value cache when needed
      */
     @Nonnull
     private CacheBuilder cacheBuilder;
 
+    /**
+     * Persistent indexed cache parameters for the key-value cache
+     */
+    private PersistentIndexedCacheParameters<Dependency, Date> persistentIndexedCacheParameters;
+
     private long maxAge;
 
-    public InvalidResolvesGradleCache(@Nonnull CacheRepository cacheRepository) {
+    public InvalidResolvesGradleCache(@Nonnull CacheRepository cacheRepository) throws CacheNotAvailableException {
         this(cacheRepository, TimeUnit.DAYS.toMillis(1));
     }
 
-    public InvalidResolvesGradleCache(@Nonnull CacheRepository cacheRepository, long maxAge) {
+    public InvalidResolvesGradleCache(@Nonnull CacheRepository cacheRepository, long maxAge)
+            throws CacheNotAvailableException {
         this.cacheBuilder = cacheRepository.cache("be.vbgn.gradle.pluginupdates")
                 .withCrossVersionCache(LockTarget.DefaultTarget)
                 .withLockOptions(LockOptionsBuilder.mode(LockMode.Exclusive))
                 .withProperties(Collections.singletonMap("cacheVersion", "2"));
         this.maxAge = maxAge;
+        persistentIndexedCacheParameters = createIndexedCacheParameters();
+    }
+
+    private PersistentIndexedCacheParameters<Dependency, Date> createIndexedCacheParameters()
+            throws CacheNotAvailableException {
+        try {
+            return createIndexedCacheParameters0();
+        } catch (ReflectiveOperationException e) {
+            throw new CacheNotAvailableException(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "JavaReflectionMemberAccess"})
+    private PersistentIndexedCacheParameters<Dependency, Date> createIndexedCacheParameters0()
+            throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
+        try {
+            // For gradle 5.1+
+            Method constructionMethod = PersistentIndexedCacheParameters.class
+                    .getMethod("of", String.class, Class.class, Class.class);
+            return (PersistentIndexedCacheParameters) constructionMethod
+                    .invoke(null, "invalidResolves", Dependency.class, Date.class);
+        } catch (NoSuchMethodException e) {
+            // For gradle 4.3 - 5.0.+
+            Constructor<PersistentIndexedCacheParameters> constructionMethod = PersistentIndexedCacheParameters.class
+                    .getConstructor(String.class, Class.class, Class.class);
+            return constructionMethod.newInstance("invalidResolves", Dependency.class, Date.class);
+        }
+
     }
 
     /**
@@ -57,23 +97,17 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
      */
     @Nullable
     private synchronized <T> T withCache(@Nonnull Function<PersistentIndexedCache<Dependency, Date>, T> cacheHandler) {
-        PersistentCache openedCache = null;
-        try {
-            openedCache = cacheBuilder.open();
+        try (PersistentCache openedCache = cacheBuilder.open()) {
             LOGGER.debug("Opened cache {}", openedCache);
-            PersistentIndexedCacheParameters<Dependency, Date> cacheParameters = new PersistentIndexedCacheParameters<>(
-                    "invalidResolves", Dependency.class, Date.class);
-            PersistentIndexedCache<Dependency, Date> persistentIndexedCache = openedCache.createCache(cacheParameters);
-            LOGGER.debug("Opened indexed cache {} with parameters {}", persistentIndexedCache, cacheParameters);
+            PersistentIndexedCache<Dependency, Date> persistentIndexedCache = openedCache
+                    .createCache(persistentIndexedCacheParameters);
+            LOGGER.debug("Opened indexed cache {} with parameters {}", persistentIndexedCache,
+                    persistentIndexedCacheParameters);
             return openedCache.useCache(() -> cacheHandler.apply(persistentIndexedCache));
         } catch (CacheOpenException e) {
             LOGGER.warn("Invalid resolves cache could not be opened. Skipping use of cache.");
             LOGGER.debug("Full stacktrace for above warning", e);
             return null;
-        } finally {
-            if (openedCache != null) {
-                openedCache.close();
-            }
         }
     }
 
