@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
@@ -29,13 +27,13 @@ class UpdateChecker {
 
     private static final Logger LOGGER = Logging.getLogger(UpdateChecker.class);
     private static final String MISSING_CACHE_COMPONENT = "Some required gradle components are missing. Invalid resolves cache is disabled, which will slow down plugin update checks.";
-    private Gradle gradle;
+    private CacheRepository cacheRepository;
     private ConfigurationCollector configurationCollector;
     private InvalidResolvesCache invalidResolvesCache = null;
 
 
-    public UpdateChecker(Gradle gradle, ConfigurationCollector configurationCollector) {
-        this.gradle = gradle;
+    public UpdateChecker(CacheRepository cacheRepository, ConfigurationCollector configurationCollector) {
+        this.cacheRepository = cacheRepository;
         this.configurationCollector = configurationCollector;
     }
 
@@ -66,8 +64,6 @@ class UpdateChecker {
 
     private InvalidResolvesCache getInvalidResolvesCache() {
         if (invalidResolvesCache == null) {
-            CacheRepository cacheRepository = ((GradleInternal) gradle).getServices()
-                    .get(CacheRepository.class);
             try {
                 if(classExists("org.gradle.cache.LockOptions")) {
                     invalidResolvesCache = new InvalidResolvesGradleCache(cacheRepository);
