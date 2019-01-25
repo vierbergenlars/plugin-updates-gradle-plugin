@@ -7,6 +7,7 @@ import be.vbgn.gradle.pluginupdates.update.formatter.PluginUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.UpdateFormatter;
 import java.util.List;
 import javax.annotation.Nonnull;
+import javax.inject.Inject;
 import org.codehaus.groovy.runtime.MethodClosure;
 import org.gradle.BuildResult;
 import org.gradle.api.Plugin;
@@ -16,6 +17,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.cache.CacheRepository;
 import org.gradle.util.GradleVersion;
 
 /**
@@ -29,6 +31,14 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
     public static final String PLUGIN_ID = "be.vbgn.plugin-updates";
     private static final Logger LOGGER = Logging.getLogger(PluginUpdatesPlugin.class);
     private UpdateChecker updateChecker;
+    private CacheRepository cacheRepository;
+
+    @Inject
+    public PluginUpdatesPlugin(CacheRepository cacheRepository) {
+        this.cacheRepository = cacheRepository;
+    }
+
+
 
     /**
      * {@inheritDoc}
@@ -147,7 +157,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
      * @param gradle The gradle invocation to register the shared objects for
      */
     private void configurePlugin(@Nonnull Gradle gradle) {
-        updateChecker = new UpdateChecker(gradle, new ConfigurationCollector(gradle));
+        updateChecker = new UpdateChecker(cacheRepository, new ConfigurationCollector(gradle));
     }
 
 
