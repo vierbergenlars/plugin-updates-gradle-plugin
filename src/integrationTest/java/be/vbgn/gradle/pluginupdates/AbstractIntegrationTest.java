@@ -49,7 +49,7 @@ abstract public class AbstractIntegrationTest {
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
-    protected BuildResult buildProject(Path projectFolder, String task) throws IOException {
+    private GradleRunner createGradleRunner(Path projectFolder, String task) throws IOException {
         FileUtils.copyDirectory(projectFolder.toFile(), testProjectDir.getRoot());
         return GradleRunner.create()
                 .withProjectDir(testProjectDir.getRoot().toPath().resolve("project").toFile())
@@ -57,8 +57,16 @@ abstract public class AbstractIntegrationTest {
                 .withTestKitDir(testProjectDir.getRoot().toPath().resolve("gradleHome").toFile())
                 .withArguments(task, "--stacktrace", "--rerun-tasks")
                 .withDebug(true)
-                .forwardOutput()
-                .build();
+                .forwardOutput();
+
+    }
+
+    protected BuildResult buildProject(Path projectFolder, String task) throws IOException {
+        return createGradleRunner(projectFolder, task).build();
+    }
+
+    protected BuildResult buildProjectAndFail(Path projectFolder, String task) throws IOException {
+        return createGradleRunner(projectFolder, task).buildAndFail();
     }
 
     protected static void assertOutputContainsOneOf(BuildResult buildResult, String... messages) {

@@ -149,4 +149,11 @@ public class IntegrationTest extends AbstractIntegrationTest {
         assertTrue("The warning message must be present once.", foundWarning);
     }
 
+    @Test
+    public void buildSrcProject() throws IOException {
+        BuildResult buildResult = buildProjectAndFail(integrationTests.resolve("buildSrc-project"), "clean");
+
+        assertFalse(buildResult.getOutput().contains("The root project is not yet available for build"));
+    }
+
 }

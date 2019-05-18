@@ -128,16 +128,25 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
      */
     private void onBuildFinished(@Nonnull BuildResult buildResult) {
         Gradle gradle = buildResult.getGradle();
-        StreamUtil.parallelIfNoDebug(gradle.getRootProject().getAllprojects()
-                .stream())
-                .filter(project -> {
-                    if (project.getPlugins().hasPlugin(PLUGIN_ID)) {
-                        LOGGER.debug("Project {} has the plugin applied. Skipping for global updates check.", project);
-                        return false;
-                    }
-                    return true;
-                })
-                .forEach(this::runBuildscriptUpdateCheck);
+        Project rootProject = null;
+        try {
+            rootProject = gradle.getRootProject();
+        } catch(IllegalStateException e) {
+            LOGGER.debug("Could not get root project, skipping updates check. {}", e.getMessage());
+        }
+        if(rootProject != null) {
+            StreamUtil.parallelIfNoDebug(rootProject.getAllprojects()
+                    .stream())
+                    .filter(project -> {
+                        if (project.getPlugins().hasPlugin(PLUGIN_ID)) {
+                            LOGGER.debug("Project {} has the plugin applied. Skipping for global updates check.",
+                                    project);
+                            return false;
+                        }
+                        return true;
+                    })
+                    .forEach(this::runBuildscriptUpdateCheck);
+        }
     }
 
     /**
