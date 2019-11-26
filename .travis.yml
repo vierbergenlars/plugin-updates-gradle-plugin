@@ -16,7 +16,7 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 
-script: ./gradlew check -i
+script: ./gradlew check -i --max-workers 8
 
 after_script: if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then
       export SONAR_ARGS="-Dsonar.branch.name=$TRAVIS_BRANCH";
