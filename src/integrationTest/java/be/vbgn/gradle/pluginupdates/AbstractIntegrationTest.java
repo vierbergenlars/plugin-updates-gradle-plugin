@@ -30,7 +30,6 @@ abstract public class AbstractIntegrationTest {
                 {"5.0"},
                 {"4.10.3"},
                 {"4.9"},
-                {"4.8.1"},
                 {"4.7"},
                 {"4.6"},
                 {"4.5.1"},
