@@ -6,6 +6,7 @@ import be.vbgn.gradle.pluginupdates.update.Update;
 import be.vbgn.gradle.pluginupdates.update.checker.DefaultUpdateChecker;
 import be.vbgn.gradle.pluginupdates.update.finder.DefaultUpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.DefaultVersionProvider;
+import be.vbgn.gradle.pluginupdates.update.finder.FilterOlderVersionsUpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.UpdateFinder;
 import be.vbgn.gradle.pluginupdates.update.finder.VersionProvider;
 import be.vbgn.gradle.pluginupdates.update.resolver.DefaultDependencyResolver;
@@ -38,15 +39,16 @@ class UpdateChecker {
     }
 
     public List<Update> getUpdates(Project project, Configuration configuration) {
-        UpdateCheckerBuilderConfiguration updateCheckerBuilderConfiguration = configurationCollector.forProject(project);
+        UpdateCheckerBuilderConfiguration updateCheckerBuilderConfiguration = configurationCollector
+                .forProject(project);
         UpdateBuilder updateBuilder = updateCheckerBuilderConfiguration.getUpdateBuilder();
         VersionProvider versionProvider = updateBuilder.buildVersionProvider(new DefaultVersionProvider());
         DependencyResolver defaultDependencyResolver = new DefaultDependencyResolver(project.getBuildscript());
         DependencyResolver cachedDependencyResolver = new FailureCachingDependencyResolver(defaultDependencyResolver,
                 getInvalidResolvesCache());
 
-        UpdateFinder updateFinder = updateBuilder
-                .buildUpdateFinder(new DefaultUpdateFinder(cachedDependencyResolver, versionProvider));
+        UpdateFinder updateFinder = new FilterOlderVersionsUpdateFinder(updateBuilder
+                .buildUpdateFinder(new DefaultUpdateFinder(cachedDependencyResolver, versionProvider)));
         DefaultUpdateChecker updateChecker = new DefaultUpdateChecker(updateFinder);
 
         return updateChecker.getUpdates(configuration).collect(Collectors.toList());
@@ -65,7 +67,7 @@ class UpdateChecker {
     private InvalidResolvesCache getInvalidResolvesCache() {
         if (invalidResolvesCache == null) {
             try {
-                if(classExists("org.gradle.cache.LockOptions")) {
+                if (classExists("org.gradle.cache.LockOptions")) {
                     invalidResolvesCache = new InvalidResolvesGradleCache(cacheRepository);
                 } else {
                     invalidResolvesCache = new InvalidResolvesMemoryCache();
