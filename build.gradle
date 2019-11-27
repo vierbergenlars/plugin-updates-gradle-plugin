@@ -31,9 +31,14 @@ configurations {
     integrationTestRuntime.extendsFrom(testRuntime)
 }
 
+test {
+    maxParallelForks = 8
+}
+
 task integrationTest(type: Test, group: "verification") {
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
+    maxParallelForks = 8
     dependsOn(publishToMavenLocal)
     doFirst {
         systemProperty "pluginVersion", project.version

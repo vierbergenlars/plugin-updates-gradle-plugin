@@ -1,6 +1,5 @@
 package be.vbgn.gradle.pluginupdates;
 
-import be.vbgn.gradle.pluginupdates.internal.StreamUtil;
 import be.vbgn.gradle.pluginupdates.update.Update;
 import be.vbgn.gradle.pluginupdates.update.formatter.DefaultUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.PluginUpdateFormatter;
@@ -37,7 +36,6 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
     public PluginUpdatesPlugin(CacheRepository cacheRepository) {
         this.cacheRepository = cacheRepository;
     }
-
 
 
     /**
@@ -135,8 +133,8 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
             LOGGER.debug("Could not get root project, skipping updates check. {}", e.getMessage());
         }
         if(rootProject != null) {
-            StreamUtil.parallelIfNoDebug(rootProject.getAllprojects()
-                    .stream())
+            rootProject.getAllprojects()
+                    .stream()
                     .filter(project -> {
                         if (project.getPlugins().hasPlugin(PLUGIN_ID)) {
                             LOGGER.debug("Project {} has the plugin applied. Skipping for global updates check.",
