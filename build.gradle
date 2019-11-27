@@ -46,7 +46,7 @@ task integrationTest(type: Test, group: "verification") {
     }
 }
 
-integrationTest.mustRunAfter(test)
+integrationTest.shouldRunAfter(test)
 check.dependsOn(integrationTest)
 tasks.sonarqube.dependsOn(integrationTest)
 
