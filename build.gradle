@@ -40,6 +40,7 @@ task integrationTest(type: Test, group: "verification") {
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     maxParallelForks = 8
+    failFast = ci.isCi()
     dependsOn(publishToMavenLocal)
     doFirst {
         systemProperty "pluginVersion", project.version
