@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -22,7 +24,7 @@ abstract public class AbstractIntegrationTest {
 
     @Parameters(name = "Gradle v{0}")
     public static Collection<Object[]> testData() {
-        return Arrays.asList(new Object[][]{
+        List<Object[]> gradleVersions = Arrays.asList(new Object[][]{
                 {"6.0.1"},
                 {"5.6.4"},
                 {"5.5.1"},
@@ -43,6 +45,9 @@ abstract public class AbstractIntegrationTest {
                 {"4.0.2"},
                 {"3.2.1"} // version shipped with debian stable
         });
+        // Shuffle versions to avoid consistently getting blocked because all subclasses acquire a lock to download the same version
+        Collections.shuffle(gradleVersions);
+        return gradleVersions;
     }
 
     @Parameter(0)
