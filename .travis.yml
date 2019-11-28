@@ -3,18 +3,6 @@ git:
   depth: false # Disable shallow fetch for sonarqube
 jdk: openjdk8
 
-before_cache:
-  - rm -f  $HOME/.gradle/caches/*/*.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
-  - rm -fr $HOME/.gradle/caches/*/fileHashes/
-  - rm -fr $HOME/.gradle/caches/*/scripts/
-  - rm -fr $HOME/.gradle/caches/*/scripts-remapped/
-
-cache:
-  directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
-
 script: ./gradlew check sonarqube -i -Dsonar.projectKey=vierbergenlars_plugin-updates-gradle-plugin -Dsonar.organization=vierbergenlars-github -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN
 
 deploy:
