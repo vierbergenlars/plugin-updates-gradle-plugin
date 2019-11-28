@@ -11,6 +11,9 @@ import be.vbgn.gradle.pluginupdates.dependency.DefaultDependency;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
+import be.vbgn.gradle.pluginupdates.update.resolver.DefaultDependencyResolver;
+import be.vbgn.gradle.pluginupdates.update.resolver.DependencyResolver;
+import be.vbgn.gradle.pluginupdates.update.resolver.FailureCachingDependencyResolver;
 import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesCache;
 import be.vbgn.gradle.pluginupdates.version.Version;
 import java.util.Comparator;
@@ -75,11 +78,10 @@ public class DefaultUpdateFinderTest {
         ArtifactRepository repository = project.getBuildscript().getRepositories().gradlePluginPortal();
         project.getBuildscript().getRepositories().add(repository);
 
-        DefaultUpdateFinder updateChecker = new DefaultUpdateFinder(project.getBuildscript(),
-                new DefaultVersionProvider());
-
         InvalidResolvesCache invalidResolvesCacheMock = Mockito.mock(InvalidResolvesCache.class);
-        updateChecker.setInvalidResolvesCache(invalidResolvesCacheMock);
+        DependencyResolver dependencyResolver = new FailureCachingDependencyResolver(new DefaultDependencyResolver(project), invalidResolvesCacheMock);
+        UpdateFinder updateChecker = new DefaultUpdateFinder(dependencyResolver, new DefaultVersionProvider());
+
         // Say that nothing is cached
         when(invalidResolvesCacheMock.get(any(Dependency.class))).thenReturn(Optional.empty());
         Dependency original = new DefaultDependency("org.gradle", "gradle-hello-world-plugin", "0.1");
@@ -106,11 +108,10 @@ public class DefaultUpdateFinderTest {
         ArtifactRepository repository = project.getBuildscript().getRepositories().gradlePluginPortal();
         project.getBuildscript().getRepositories().add(repository);
 
-        DefaultUpdateFinder updateChecker = new DefaultUpdateFinder(project.getBuildscript(),
-                new DefaultVersionProvider());
-
         InvalidResolvesCache invalidResolvesCacheMock = Mockito.mock(InvalidResolvesCache.class);
-        updateChecker.setInvalidResolvesCache(invalidResolvesCacheMock);
+        DependencyResolver dependencyResolver = new FailureCachingDependencyResolver(new DefaultDependencyResolver(project), invalidResolvesCacheMock);
+        UpdateFinder updateChecker = new DefaultUpdateFinder(dependencyResolver, new DefaultVersionProvider());
+
         Dependency original = new DefaultDependency("org.gradle", "gradle-hello-world-plugin", "0.1");
         // Say that nothing is cached
         when(invalidResolvesCacheMock.get(any(Dependency.class))).thenReturn(Optional.empty());

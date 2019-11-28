@@ -3,15 +3,12 @@ package be.vbgn.gradle.pluginupdates;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateBuilder;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerBuilderConfiguration;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerConfigurationImpl;
-import groovy.lang.GroovyObject;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.gradle.api.Plugin;
-import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.PluginAware;
 
 /**
@@ -34,45 +31,13 @@ public class ConfigurationPlugin implements Plugin<PluginAware>, Serializable {
      */
     private UpdateCheckerConfigurationImpl configuration;
 
-
-    /**
-     * Creates an extension block, or an emulated extension block
-     *
-     * @param object The object to create the extension block on.
-     *               Creates a real extension block if it implements {@link ExtensionAware},
-     *               or an emulated extension block if it implements {@link GroovyObject} and has an {@link ExtraPropertiesExtension} where extra properties can be attached to
-     * @param name   The name of the extension block that will be created
-     * @param clazz  The type that will implement the extension block. it must have a 0 parameter constructor
-     * @param <T>    Type that will implement the extension block.
-     * @return An instanciated class of type {@literal clazz}
-     * @throws RuntimeException When no extension block can be created
-     */
-    @Nonnull
-    private <T> T createExtension(@Nullable Object object, @Nonnull String name, @Nonnull Class<T> clazz) {
-        if(object instanceof ExtensionAware) {
-            return ((ExtensionAware) object).getExtensions().create(name, clazz);
-        }
-        if(object instanceof GroovyObject) {
-            GroovyObject groovyObject = (GroovyObject) object;
-            ExtraPropertiesExtension extension = (ExtraPropertiesExtension) groovyObject.getProperty("ext");
-            T newInstance = null;
-            try {
-                newInstance = clazz.newInstance();
-            } catch (InstantiationException|IllegalAccessException e) {
-                throw new RuntimeException("Can not create instance of "+clazz.getCanonicalName());
-            }
-            extension.set(name, newInstance);
-            return newInstance;
-        }
-        throw new RuntimeException("Object is not a groovy object, can't add extension.");
-    }
-
     /**
      * {@inheritDoc}
      */
     @Override
     public void apply(@Nonnull PluginAware target) {
-        configuration = createExtension(target, "pluginUpdates", UpdateCheckerConfigurationImpl.class);
+        configuration = new DslObject(target).getExtensions()
+                .create("pluginUpdates", UpdateCheckerConfigurationImpl.class);
     }
 
     /**

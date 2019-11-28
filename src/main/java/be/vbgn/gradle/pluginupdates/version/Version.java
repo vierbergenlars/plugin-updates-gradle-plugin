@@ -306,7 +306,7 @@ public class Version implements Comparable<Version>, Serializable {
     private static class Scanner {
 
         @Nonnull
-        final private String version;
+        private final String version;
         private int ptr;
 
         public Scanner(@Nonnull String version) {

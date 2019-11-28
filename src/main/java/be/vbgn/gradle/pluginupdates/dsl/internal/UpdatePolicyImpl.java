@@ -15,7 +15,6 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
@@ -58,14 +57,8 @@ public class UpdatePolicyImpl implements UpdateBuilder {
         BiPredicate<Dependency, FailureAllowedVersion> filterPredicate = (dependency, failureAllowedVersion) -> filterPredicates
                 .stream().allMatch(predicate -> predicate.test(dependency, failureAllowedVersion));
 
-        return new VersionProvider() {
-            @Nonnull
-            @Override
-            public Stream<FailureAllowedVersion> getUpdateVersions(@Nonnull Dependency dependency) {
-                return backingProvider.getUpdateVersions(dependency)
-                        .filter(failureAllowedVersion -> filterPredicate.test(dependency, failureAllowedVersion));
-            }
-        };
+        return dependency -> backingProvider.getUpdateVersions(dependency)
+                .filter(failureAllowedVersion -> filterPredicate.test(dependency, failureAllowedVersion));
     }
 
     @Nonnull
@@ -80,14 +73,7 @@ public class UpdatePolicyImpl implements UpdateBuilder {
                 .collect(Collectors.toSet());
         Predicate<Dependency> filterPredicate = dependency -> filterPredicates.stream()
                 .allMatch(predicate -> predicate.test(dependency));
-        return new UpdateFinder() {
-            @Nonnull
-            @Override
-            public Stream<Dependency> findUpdates(@Nonnull Dependency dependency) {
-                return renamedModuleFinder.findUpdates(dependency)
-                        .filter(filterPredicate);
-            }
-        };
+        return dependency -> renamedModuleFinder.findUpdates(dependency).filter(filterPredicate);
     }
 }
 

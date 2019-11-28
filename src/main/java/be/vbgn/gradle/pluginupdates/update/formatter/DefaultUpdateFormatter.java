@@ -78,7 +78,7 @@ public class DefaultUpdateFormatter implements UpdateFormatter {
         }
 
         @Nonnull
-        static private DependencyDiff findDiff(@Nonnull Dependency a, @Nonnull Dependency b) {
+        private static DependencyDiff findDiff(@Nonnull Dependency a, @Nonnull Dependency b) {
             DependencyDiff[] dependencyDiffs = DependencyDiff.values();
             Arrays.sort(dependencyDiffs, Comparator.comparingInt(c -> -c.weight));
 
@@ -91,7 +91,7 @@ public class DefaultUpdateFormatter implements UpdateFormatter {
         }
 
         @Nonnull
-        static private DependencyDiff findDiff(@Nonnull DependencyDiff a, @Nonnull DependencyDiff b) {
+        private static DependencyDiff findDiff(@Nonnull DependencyDiff a, @Nonnull DependencyDiff b) {
             return a.weight < b.weight ? a : b;
         }
     }

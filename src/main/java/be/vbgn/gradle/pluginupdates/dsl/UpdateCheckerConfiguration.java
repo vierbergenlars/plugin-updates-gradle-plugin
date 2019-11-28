@@ -1,9 +1,7 @@
 package be.vbgn.gradle.pluginupdates.dsl;
 
-import groovy.lang.Closure;
 import javax.annotation.Nonnull;
 import org.gradle.api.Action;
-import org.gradle.util.ConfigureUtil;
 
 /**
  * Contains all configuration for the {@link be.vbgn.gradle.pluginupdates.PluginUpdatesPlugin}
@@ -48,15 +46,4 @@ public interface UpdateCheckerConfiguration {
     default void policy(@Nonnull Action<? super UpdatePolicy> policy) {
         policy.execute(getPolicy());
     }
-
-    /**
-     * Immediately configures the update policy
-     *
-     * @deprecated Use {@link #policy(Action)} instead. This method can also be used automatically by gradle as target for closures
-     */
-    @Deprecated
-    default void policy(@Nonnull Closure policy) {
-        policy(ConfigureUtil.configureUsing(policy));
-    }
-
 }

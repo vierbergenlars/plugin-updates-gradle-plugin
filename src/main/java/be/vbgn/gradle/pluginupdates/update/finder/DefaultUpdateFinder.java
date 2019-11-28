@@ -4,20 +4,15 @@ import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
 import be.vbgn.gradle.pluginupdates.update.resolver.DefaultDependencyResolver;
 import be.vbgn.gradle.pluginupdates.update.resolver.DependencyResolver;
-import be.vbgn.gradle.pluginupdates.update.resolver.FailureCachingDependencyResolver;
-import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesCache;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 public class DefaultUpdateFinder implements UpdateFinder {
 
-    private static Logger LOGGER = Logging.getLogger(DefaultUpdateFinder.class);
+    private static final Logger LOGGER = Logging.getLogger(DefaultUpdateFinder.class);
 
     @Nonnull
     private VersionProvider versionProvider;
@@ -25,29 +20,9 @@ public class DefaultUpdateFinder implements UpdateFinder {
     @Nonnull
     private DependencyResolver dependencyResolver;
 
-    /**
-     * @deprecated since 0.4.0. Use {@link #DefaultUpdateFinder(DependencyResolver, VersionProvider)} instead
-     */
-    @Deprecated
-    public DefaultUpdateFinder(@Nonnull ScriptHandler scriptHandler, @Nonnull VersionProvider versionProvider) {
-        this(scriptHandler.getDependencies(), scriptHandler.getConfigurations(), versionProvider);
-    }
-
-    /**
-     * @deprecated since 0.4.0. Use {@link #DefaultUpdateFinder(DependencyResolver, VersionProvider)} instead
-     */
-    @Deprecated
-    public DefaultUpdateFinder(@Nonnull Project project, @Nonnull VersionProvider versionProvider) {
-        this(project.getDependencies(), project.getConfigurations(), versionProvider);
-    }
-
-    /**
-     * @deprecated since 0.4.0. Use {@link #DefaultUpdateFinder(DependencyResolver, VersionProvider)} instead
-     */
-    @Deprecated
-    public DefaultUpdateFinder(@Nonnull DependencyHandler dependencyHandler,
-            @Nonnull ConfigurationContainer configurationContainer, @Nonnull VersionProvider versionProvider) {
-        this(new DefaultDependencyResolver(dependencyHandler, configurationContainer), versionProvider);
+    DefaultUpdateFinder(@Nonnull ScriptHandler scriptHandler, @Nonnull VersionProvider versionProvider) {
+        this(new DefaultDependencyResolver(scriptHandler.getDependencies(), scriptHandler.getConfigurations()),
+                versionProvider);
     }
 
     public DefaultUpdateFinder(@Nonnull DependencyResolver dependencyResolver,
@@ -85,14 +60,5 @@ public class DefaultUpdateFinder implements UpdateFinder {
                         LOGGER.debug("Resolve exception", ((FailedDependency) dependency1).getProblem());
                     }
                 });
-    }
-
-
-    /**
-     * @deprecated since 0.4.0. Use {@link #DefaultUpdateFinder(DependencyResolver, VersionProvider)} with an {@link FailureCachingDependencyResolver} instead
-     */
-    @Deprecated
-    public void setInvalidResolvesCache(@Nonnull InvalidResolvesCache invalidResolvesCache) {
-        dependencyResolver = new FailureCachingDependencyResolver(dependencyResolver, invalidResolvesCache);
     }
 }

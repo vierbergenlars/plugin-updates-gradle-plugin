@@ -17,7 +17,7 @@ public class DefaultUpdateChecker implements UpdateChecker {
 
     @Nonnull
     private UpdateFinder updateFinder;
-    private static Logger LOGGER = Logging.getLogger(DefaultUpdateChecker.class);
+    private static final Logger LOGGER = Logging.getLogger(DefaultUpdateChecker.class);
 
     public DefaultUpdateChecker(@Nonnull UpdateFinder updateFinder) {
         this.updateFinder = updateFinder;

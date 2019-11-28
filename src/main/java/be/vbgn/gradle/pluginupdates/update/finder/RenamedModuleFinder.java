@@ -15,7 +15,7 @@ public class RenamedModuleFinder implements UpdateFinder {
     private UpdateFinder updateFinder;
     @Nonnull
     private UnaryOperator<Dependency> renames;
-    private static Logger LOGGER = Logging.getLogger(RenamedModuleFinder.class);
+    private static final Logger LOGGER = Logging.getLogger(RenamedModuleFinder.class);
 
     public RenamedModuleFinder(@Nonnull UpdateFinder updateFinder,
             @Nonnull UnaryOperator<Dependency> renames) {

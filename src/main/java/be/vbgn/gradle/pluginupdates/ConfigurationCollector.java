@@ -56,7 +56,9 @@ class ConfigurationCollector {
 
     @Nonnull
     public UpdateCheckerBuilderConfiguration forProject(@Nonnull Project project) {
-        assert project.getGradle() == gradle;
+        if(project.getGradle() != gradle) {
+            throw new IllegalArgumentException("Project must be for the same Gradle instance as the ConfigurationCollector has been constructed for.");
+        }
 
         UpdateCheckerBuilderConfiguration projectConfiguration = findUpdateCheckerConfiguration(project);
 
