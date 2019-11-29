@@ -11,7 +11,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 public class DefaultVersionProvider implements VersionProvider{
-    private static Logger LOGGER = Logging.getLogger(DefaultVersionProvider.class);
+    private static final Logger LOGGER = Logging.getLogger(DefaultVersionProvider.class);
 
     @Nonnull
     @Override

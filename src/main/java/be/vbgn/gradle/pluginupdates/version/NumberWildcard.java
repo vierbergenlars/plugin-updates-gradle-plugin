@@ -6,10 +6,10 @@ import javax.annotation.Nonnull;
 /**
  * Single, numeric or wildcard component of a version number
  */
-public class NumberWildcard implements Comparable<NumberWildcard>, Serializable {
+public final class NumberWildcard implements Comparable<NumberWildcard>, Serializable {
 
-    private final static NumberWildcard WILDCARD = new NumberWildcard(-1, true);
-    private final static NumberWildcard EMPTY = new NumberWildcard(-1, false);
+    private static final NumberWildcard WILDCARD = new NumberWildcard(-1, true);
+    private static final NumberWildcard EMPTY = new NumberWildcard(-1, false);
 
     /**
      * Exception thrown when an attempt is made to retrieve the numeric component of a {@link NumberWildcard} that does not have a numeric component.
@@ -33,7 +33,7 @@ public class NumberWildcard implements Comparable<NumberWildcard>, Serializable 
     /**
      * Wildcard part of the component
      */
-    private boolean wildcard;
+    private boolean hasWildcard;
 
     /**
      * Creates a numeric variant without a wildcard
@@ -52,7 +52,7 @@ public class NumberWildcard implements Comparable<NumberWildcard>, Serializable 
      * Creates a wildcard
      *
      * <b>Implementation note</b>
-     *
+     * <p>
      * The wildcard instance is a singleton.
      * Because there are other ways to create a wildcard, this should not be relied on for comparison.
      */
@@ -67,7 +67,7 @@ public class NumberWildcard implements Comparable<NumberWildcard>, Serializable 
      * An empty {@linkplain NumberWildcard} signifies the absence of any value. It contains neither a number, nor is a wildcard.
      *
      * <b>Implementation note</b>
-     *
+     * <p>
      * The empty instance is a singleton.
      * Because there are other ways to create an empty, this should not be relied on for comparison.
      */
@@ -79,12 +79,12 @@ public class NumberWildcard implements Comparable<NumberWildcard>, Serializable 
     /**
      * Internal constructor
      *
-     * @param number   The number to use. -1 signifies a lack of number component.
-     * @param wildcard Is a wildcard?
+     * @param number      The number to use. -1 signifies a lack of number component.
+     * @param hasWildcard Is a wildcard?
      */
-    private NumberWildcard(int number, boolean wildcard) {
+    private NumberWildcard(int number, boolean hasWildcard) {
         this.number = number;
-        this.wildcard = wildcard;
+        this.hasWildcard = hasWildcard;
     }
 
     public boolean hasNumberComponent() {
@@ -114,7 +114,7 @@ public class NumberWildcard implements Comparable<NumberWildcard>, Serializable 
         if (number < 0) {
             throw new IllegalArgumentException("A version number can not be negative.");
         }
-        return new NumberWildcard(number, wildcard);
+        return new NumberWildcard(number, hasWildcard);
     }
 
     /**
@@ -122,11 +122,11 @@ public class NumberWildcard implements Comparable<NumberWildcard>, Serializable 
      */
     @Nonnull
     public NumberWildcard withoutNumberComponent() {
-        return new NumberWildcard(-1, wildcard);
+        return new NumberWildcard(-1, hasWildcard);
     }
 
     public boolean hasWildcard() {
-        return wildcard;
+        return hasWildcard;
     }
 
     /**
@@ -212,13 +212,13 @@ public class NumberWildcard implements Comparable<NumberWildcard>, Serializable 
         if (number != that.number) {
             return false;
         }
-        return wildcard == that.wildcard;
+        return hasWildcard == that.hasWildcard;
     }
 
     @Override
     public int hashCode() {
         int result = number;
-        result = 31 * result + (wildcard ? 1 : 0);
+        result = 31 * result + (hasWildcard ? 1 : 0);
         return result;
     }
 

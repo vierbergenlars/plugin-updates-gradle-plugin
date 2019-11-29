@@ -29,6 +29,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
      */
     public static final String PLUGIN_ID = "be.vbgn.plugin-updates";
     private static final Logger LOGGER = Logging.getLogger(PluginUpdatesPlugin.class);
+    private final MethodClosure buildFinishedCallback = new MethodClosure(this, "onBuildFinished");
     private UpdateChecker updateChecker;
     private CacheRepository cacheRepository;
 
@@ -84,7 +85,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
         if (isOnline(gradle)) {
             LOGGER.debug("Register buildFinished callback for single project");
             configurePlugin(gradle);
-            project.getGradle().buildFinished(new MethodClosure(this, "onBuildFinished").curry(project));
+            project.getGradle().buildFinished(buildFinishedCallback.curry(project));
         }
     }
 
@@ -96,7 +97,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
         if (isOnline(gradle)) {
             LOGGER.debug("Register buildFinished callback");
             configurePlugin(gradle);
-            gradle.buildFinished(new MethodClosure(this, "onBuildFinished"));
+            gradle.buildFinished(buildFinishedCallback);
         }
     }
 
@@ -115,7 +116,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
         if (isOnline(gradle)) {
             LOGGER.debug("Register buildFinished callback");
             configurePlugin(gradle);
-            gradle.buildFinished(new MethodClosure(this, "onBuildFinished"));
+            gradle.buildFinished(buildFinishedCallback);
         }
     }
 
@@ -129,10 +130,10 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
         Project rootProject = null;
         try {
             rootProject = gradle.getRootProject();
-        } catch(IllegalStateException e) {
+        } catch (IllegalStateException e) {
             LOGGER.debug("Could not get root project, skipping updates check. {}", e.getMessage());
         }
-        if(rootProject != null) {
+        if (rootProject != null) {
             rootProject.getAllprojects()
                     .stream()
                     .filter(project -> {
@@ -182,8 +183,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
 
             updates.forEach(update -> {
                 if (update.isOutdated()) {
-                    LOGGER.warn("Plugin is outdated in " + project.toString() + ": " + updateFormatter
-                            .format(update));
+                    LOGGER.warn("Plugin is outdated in {}: {}", project, updateFormatter.format(update));
                 }
             });
         } catch (Throwable e) {

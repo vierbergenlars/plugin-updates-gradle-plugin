@@ -12,7 +12,10 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 /**
  * Utilities to create {@link Dependency} and {@link ModuleIdentifier} from alternative notations
  */
-class Util {
+final class Util {
+
+    private Util() {
+    }
 
     /**
      * @param moduleNotation Module identifier specified as <code>&lt;group&gt;:&lt;name&gt;</code>

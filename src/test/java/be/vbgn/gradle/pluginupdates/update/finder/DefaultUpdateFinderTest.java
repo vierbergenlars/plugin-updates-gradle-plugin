@@ -11,12 +11,16 @@ import be.vbgn.gradle.pluginupdates.dependency.DefaultDependency;
 import be.vbgn.gradle.pluginupdates.dependency.DefaultFailedDependency;
 import be.vbgn.gradle.pluginupdates.dependency.Dependency;
 import be.vbgn.gradle.pluginupdates.dependency.FailedDependency;
+import be.vbgn.gradle.pluginupdates.update.resolver.DefaultDependencyResolver;
+import be.vbgn.gradle.pluginupdates.update.resolver.DependencyResolver;
+import be.vbgn.gradle.pluginupdates.update.resolver.FailureCachingDependencyResolver;
 import be.vbgn.gradle.pluginupdates.update.resolver.internal.InvalidResolvesCache;
 import be.vbgn.gradle.pluginupdates.version.Version;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.testfixtures.ProjectBuilder;
@@ -75,14 +79,21 @@ public class DefaultUpdateFinderTest {
         ArtifactRepository repository = project.getBuildscript().getRepositories().gradlePluginPortal();
         project.getBuildscript().getRepositories().add(repository);
 
-        DefaultUpdateFinder updateChecker = new DefaultUpdateFinder(project.getBuildscript(),
-                new DefaultVersionProvider());
-
+        DefaultDependencyResolver dependencyResolver = Mockito.mock(DefaultDependencyResolver.class);
         InvalidResolvesCache invalidResolvesCacheMock = Mockito.mock(InvalidResolvesCache.class);
-        updateChecker.setInvalidResolvesCache(invalidResolvesCacheMock);
+        DependencyResolver cachingDependencyResolver = new FailureCachingDependencyResolver(dependencyResolver,
+                invalidResolvesCacheMock);
+        UpdateFinder updateChecker = new DefaultUpdateFinder(cachingDependencyResolver, new DefaultVersionProvider());
+
         // Say that nothing is cached
         when(invalidResolvesCacheMock.get(any(Dependency.class))).thenReturn(Optional.empty());
         Dependency original = new DefaultDependency("org.gradle", "gradle-hello-world-plugin", "0.1");
+        when(dependencyResolver.resolve(original.withVersion("+"))).thenReturn(
+                Stream.of(original.withVersion("0.1")));
+        when(dependencyResolver.resolve(original.withVersion("0.+"))).thenReturn(
+                Stream.of(original.withVersion("0.1")));
+        when(dependencyResolver.resolve(original.withVersion("0.1.+"))).thenReturn(
+                Stream.of(DefaultFailedDependency.fromDependency(original.withVersion("0.1.+"), null)));
 
         List<Dependency> updates = updateChecker.findUpdates(original)
                 .collect(Collectors.toList());
@@ -106,14 +117,21 @@ public class DefaultUpdateFinderTest {
         ArtifactRepository repository = project.getBuildscript().getRepositories().gradlePluginPortal();
         project.getBuildscript().getRepositories().add(repository);
 
-        DefaultUpdateFinder updateChecker = new DefaultUpdateFinder(project.getBuildscript(),
-                new DefaultVersionProvider());
-
+        DefaultDependencyResolver dependencyResolver = Mockito.mock(DefaultDependencyResolver.class);
         InvalidResolvesCache invalidResolvesCacheMock = Mockito.mock(InvalidResolvesCache.class);
-        updateChecker.setInvalidResolvesCache(invalidResolvesCacheMock);
+        DependencyResolver cachingDependencyResolver = new FailureCachingDependencyResolver(dependencyResolver,
+                invalidResolvesCacheMock);
+        UpdateFinder updateChecker = new DefaultUpdateFinder(cachingDependencyResolver, new DefaultVersionProvider());
+
         Dependency original = new DefaultDependency("org.gradle", "gradle-hello-world-plugin", "0.1");
         // Say that nothing is cached
         when(invalidResolvesCacheMock.get(any(Dependency.class))).thenReturn(Optional.empty());
+        when(dependencyResolver.resolve(original.withVersion("+"))).thenReturn(
+                Stream.of(original.withVersion("0.1")));
+        when(dependencyResolver.resolve(original.withVersion("0.+"))).thenReturn(
+                Stream.of(original.withVersion("0.1")));
+        when(dependencyResolver.resolve(original.withVersion("0.1.+"))).thenReturn(
+                Stream.of(DefaultFailedDependency.fromDependency(original.withVersion("0.1.+"), null)));
         Throwable marker = new RuntimeException("Marker");
         // Except for this one version that is an allowed failure too
         when(invalidResolvesCacheMock.get(original.withVersion("0.1.+"))).thenReturn(Optional.of(
@@ -129,6 +147,10 @@ public class DefaultUpdateFinderTest {
         verify(invalidResolvesCacheMock).get(original.withVersion("0.1.+"));
         // And that's it, since it was loaded from cache it was not put back in
         verifyNoMoreInteractions(invalidResolvesCacheMock);
+
+        verify(dependencyResolver).resolve(original.withVersion("+"));
+        verify(dependencyResolver).resolve(original.withVersion("0.+"));
+        verifyNoMoreInteractions(dependencyResolver);
 
     }
 }

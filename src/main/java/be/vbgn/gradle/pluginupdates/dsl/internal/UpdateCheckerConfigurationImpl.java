@@ -58,6 +58,6 @@ public class UpdateCheckerConfigurationImpl implements UpdateCheckerBuilderConfi
 
     @Override
     public UpdateBuilder getUpdateBuilder() {
-        return policy;
+        return getPolicy();
     }
 }

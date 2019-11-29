@@ -18,8 +18,8 @@ public class RenamedModuleFinderTest {
             @Nonnull
             @Override
             public Stream<Dependency> findUpdates(@Nonnull Dependency dependency) {
-                assertEquals(dependency.getGroup(), "be.vbgn.gradle.test2");
-                assertEquals(dependency.getName(), "test1");
+                assertEquals("be.vbgn.gradle.test2", dependency.getGroup());
+                assertEquals("test1", dependency.getName());
 
                 // When a group or name has changed and version has not been set explicitly
                 assertEquals(dependency.getVersion(), Version.parse("+"));
