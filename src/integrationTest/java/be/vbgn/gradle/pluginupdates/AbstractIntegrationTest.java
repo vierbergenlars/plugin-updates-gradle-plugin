@@ -30,7 +30,6 @@ abstract public class AbstractIntegrationTest {
                 {"5.6.4"},
                 {"5.0"},
                 {"4.10.3"},
-                {"4.4.1"}, // version shipped with debian stable
         });
         // Shuffle versions to avoid consistently getting blocked because all subclasses acquire a lock to download the same version
         Collections.shuffle(gradleVersions);
