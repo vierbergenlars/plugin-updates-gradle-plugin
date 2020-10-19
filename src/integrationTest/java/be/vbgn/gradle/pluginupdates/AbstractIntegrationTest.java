@@ -25,25 +25,11 @@ abstract public class AbstractIntegrationTest {
     @Parameters(name = "Gradle v{0}")
     public static Collection<Object[]> testData() {
         List<Object[]> gradleVersions = Arrays.asList(new Object[][]{
+                {"6.7"},
                 {"6.0.1"},
                 {"5.6.4"},
-                {"5.5.1"},
-                {"5.4.1"},
-                {"5.3.1"},
-                {"5.2.1"},
-                {"5.1.1"},
                 {"5.0"},
                 {"4.10.3"},
-                {"4.9"},
-                {"4.7"},
-                {"4.6"},
-                {"4.5.1"},
-                {"4.4.1"},
-                {"4.3.1"},
-                {"4.2"},
-                {"4.1"},
-                {"4.0.2"},
-                {"3.2.1"} // version shipped with debian stable
         });
         // Shuffle versions to avoid consistently getting blocked because all subclasses acquire a lock to download the same version
         Collections.shuffle(gradleVersions);

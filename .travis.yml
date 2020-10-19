@@ -1,7 +1,7 @@
 language: java
 git:
   depth: false # Disable shallow fetch for sonarqube
-jdk: openjdk8
+jdk: openjdk11
 
 script: ./gradlew check sonarqube -i -Dsonar.projectKey=vierbergenlars_plugin-updates-gradle-plugin -Dsonar.organization=vierbergenlars-github -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN
 
