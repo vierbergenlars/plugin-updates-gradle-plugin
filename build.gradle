@@ -1,89 +1,49 @@
 plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
-    id "jacoco"
-    id "com.gradle.plugin-publish" version "0.12.0"
-    id 'org.ajoberstar.reckon' version "0.13.0"
-    id "org.sonarqube" version "3.0"
-    id "be.vbgn.ci-detect" version "0.5.0"
+    id 'jacoco'
+    id 'com.gradle.plugin-publish' version '0.12.0'
+    id 'org.ajoberstar.reckon' version '0.13.0'
+    id 'org.sonarqube' version '3.0'
+    id 'be.vbgn.ci-detect' version '0.5.0'
+    id 'be.vbgn.dev-conventions.opinion' version '0.2.0'
+    id 'nebula.integtest' version '7.0.9'
 }
 group 'be.vbgn.gradle'
 
 sourceCompatibility = 1.8
 
 repositories {
-    jcenter()
-}
-
-sourceSets {
-    integrationTest {
-        java {
-            compileClasspath += main.output
-            runtimeClasspath += main.output
-        }
-    }
-}
-
-configurations {
-    integrationTestCompile.extendsFrom(testCompile)
-    integrationTestRuntime.extendsFrom(testRuntime)
+    mavenCentral()
 }
 
 test {
     maxParallelForks = 8
 }
 
-task integrationTest(type: Test, group: "verification") {
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
+integrationTest {
     maxParallelForks = 8
-    failFast = ci.isCi()
     dependsOn(publishToMavenLocal)
     doFirst {
         systemProperty "pluginVersion", project.version
     }
-}
-
-integrationTest.shouldRunAfter(test)
-check.dependsOn(tasks.withType(Test))
-
-jacocoTestReport {
-    executionData(tasks.withType(Test))
-    reports {
-        xml.enabled = true
-        html.enabled = !ci.isCi()
-    }
-    dependsOn(check)
+    shouldRunAfter(test)
 }
 
 sonarqube {
     properties {
-        properties["sonar.tests"] += sourceSets.integrationTest.allSource.srcDirs
-        properties["sonar.coverage.jacoco.xmlReportPaths"] = jacocoTestReport.reports.xml.destination
-        if (ci.isCi()) {
-            if (ci.isPullRequest()) {
-                properties["sonar.pullrequest.branch"] = ci.branch
-                properties["sonar.pullrequest.base"] = ci.pullRequestTargetBranch
-                properties["sonar.pullrequest.key"] = ci.pullRequest
-            } else {
-                properties["sonar.branch.name"] = ci.reference
-            }
-        }
+        properties["sonar.tests"] += sourceSets.integTest.allSource.srcDirs
     }
 }
-tasks.sonarqube.dependsOn(check, jacocoTestReport)
 
 javadoc {
     exclude '**/internal/**'
 }
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    testCompile group: 'junit', name: 'junit', version: '4.13.1'
-    testCompile gradleTestKit()
-    testCompile group: 'org.mockito', name: 'mockito-inline', version: '3.6.0'
-    integrationTestCompile group: 'commons-io', name: 'commons-io', version: '2.8.0'
+    testCompile 'junit:junit:4.13.1'
+    testCompile 'org.mockito:mockito-inline:3.6.0'
+    integTestCompile 'commons-io:commons-io:2.8.0'
 }
 
 gradlePlugin {
@@ -113,10 +73,3 @@ pluginBundle {
         }
     }
 }
-
-reckon {
-    scopeFromProp()
-    snapshotFromProp()
-}
-
-reckonTagCreate.dependsOn(check)
