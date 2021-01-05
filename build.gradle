@@ -42,7 +42,7 @@ javadoc {
 
 dependencies {
     testCompile 'junit:junit:4.13.1'
-    testCompile 'org.mockito:mockito-inline:3.6.28'
+    testCompile 'org.mockito:mockito-inline:3.7.0'
     integTestCompile 'commons-io:commons-io:2.8.0'
 }
 
