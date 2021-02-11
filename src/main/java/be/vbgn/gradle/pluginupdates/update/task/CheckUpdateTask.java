@@ -1,12 +1,11 @@
 package be.vbgn.gradle.pluginupdates.update.task;
 
 import be.vbgn.gradle.pluginupdates.update.Update;
-import java.util.ArrayList;
-import java.util.List;
 import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
@@ -14,8 +13,8 @@ import org.gradle.cache.CacheRepository;
 
 public class CheckUpdateTask extends DefaultTask {
 
-    private final ListProperty<Configuration> configurations = getProject().getObjects()
-            .listProperty(Configuration.class);
+    private final Property<Configuration> configuration = getProject().getObjects()
+            .property(Configuration.class);
 
     private final ListProperty<Update> updates = getProject().getObjects().listProperty(Update.class);
 
@@ -28,8 +27,8 @@ public class CheckUpdateTask extends DefaultTask {
 
 
     @Input
-    public ListProperty<Configuration> getConfigurations() {
-        return configurations;
+    public Property<Configuration> getConfiguration() {
+        return configuration;
     }
 
     @Internal
@@ -39,12 +38,6 @@ public class CheckUpdateTask extends DefaultTask {
 
     @TaskAction
     public void findUpdates() {
-        List<Update> updates = new ArrayList<>();
-
-        for (Configuration configuration : configurations.get()) {
-            updates.addAll(updateChecker.getUpdates(getProject(), configuration));
-        }
-
-        getUpdates().addAll(updates);
+        getUpdates().set(updateChecker.getUpdates(getProject(), configuration.get()));
     }
 }

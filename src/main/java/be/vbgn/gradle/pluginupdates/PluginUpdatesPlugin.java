@@ -4,6 +4,7 @@ import be.vbgn.gradle.pluginupdates.update.formatter.DefaultUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.PluginUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.UpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.task.CheckUpdateTask;
+import java.util.UUID;
 import javax.annotation.Nonnull;
 import org.codehaus.groovy.runtime.MethodClosure;
 import org.gradle.BuildResult;
@@ -74,7 +75,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
         Gradle gradle = project.getGradle();
         if (isOnline(gradle)) {
             LOGGER.debug("Register buildFinished callback for single project");
-            configurePlugin(gradle);
+            configurePlugin(project);
             project.getGradle().buildFinished(buildFinishedCallback.curry(project));
         }
     }
@@ -150,20 +151,31 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
     }
 
     /**
-     * Configures shared objects used by all update checks
+     * Configures tasks used by all update checks
      *
-     * @param gradle The gradle invocation to register the shared objects for
+     * @param gradle The gradle invocation to register the tasks for
      */
     private void configurePlugin(@Nonnull Gradle gradle) {
-        gradle.allprojects(project -> {
-            TaskProvider<CheckUpdateTask> updateTask = project.getTasks()
-                    .register("checkGradlePluginUpdates", CheckUpdateTask.class, task -> {
-                        task.getConfigurations().add(project.getBuildscript().getConfigurations().named("classpath"));
-                        task.setDescription("Checks for updates for your Gradle plugins");
-                    });
-            project.getTasks().configureEach(task -> {
-                if (!(task instanceof CheckUpdateTask)) {
-                    task.finalizedBy(updateTask);
+        gradle.allprojects(this::configurePlugin);
+    }
+
+    /**
+     * Configures tasks used for update checks in a single project
+     *
+     * @param project The project to create the tasks for
+     */
+    private void configurePlugin(@Nonnull Project project) {
+        final String TASK_NAME = "checkGradlePluginUpdates_" + UUID.randomUUID().toString();
+        TaskProvider<CheckUpdateTask> updateTaskTaskProvider = project.getTasks()
+                .register(TASK_NAME, CheckUpdateTask.class, updateTask -> {
+                    updateTask.getConfiguration()
+                            .set(project.getBuildscript().getConfigurations().named("classpath"));
+                    updateTask.setDescription("Checks for updates for your Gradle plugins");
+                });
+        project.getRootProject().allprojects(p -> {
+            p.getTasks().configureEach(task -> {
+                if (!task.getClass().getPackage().getName().equals(CheckUpdateTask.class.getPackage().getName())) {
+                    task.finalizedBy(updateTaskTaskProvider);
                 }
             });
         });
