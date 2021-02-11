@@ -36,18 +36,21 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
      * Cache builder that is used to create an indexed key-value cache when needed
      */
     @Nonnull
-    private CacheBuilder cacheBuilder;
+    private final CacheBuilder cacheBuilder;
 
     /**
      * Persistent indexed cache parameters for the key-value cache
      */
-    private PersistentIndexedCacheParameters<Dependency, Date> persistentIndexedCacheParameters;
+    @Nonnull
+    private final PersistentIndexedCacheParameters<Dependency, Date> persistentIndexedCacheParameters;
 
-    private long maxAge;
+    @Nonnull
+    private final long maxAge;
 
     public InvalidResolvesGradleCache(@Nonnull CacheRepository cacheRepository) throws CacheNotAvailableException {
         this(cacheRepository, TimeUnit.DAYS.toMillis(1));
     }
+
 
     public InvalidResolvesGradleCache(@Nonnull CacheRepository cacheRepository, long maxAge)
             throws CacheNotAvailableException {
@@ -68,7 +71,7 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
         }
     }
 
-    @SuppressWarnings({"unchecked", "JavaReflectionMemberAccess"})
+    @SuppressWarnings({"unchecked", "JavaReflectionMemberAccess", "rawtypes"})
     private PersistentIndexedCacheParameters<Dependency, Date> createIndexedCacheParameters0()
             throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
         try {
@@ -120,15 +123,40 @@ public class InvalidResolvesGradleCache implements InvalidResolvesCache {
         });
     }
 
+    @Nullable
+    private static <K, V> V cacheGet(PersistentIndexedCache<K, V> cache, Dependency dependency) {
+        try {
+            return cacheGet0(cache, dependency);
+        } catch (ReflectiveOperationException e) {
+            LOGGER.warn("Could not retrieve entry from invalid resolves cache. Skipping use of cache.");
+            LOGGER.debug("Full stacktrace for above warning", e);
+            return null;
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static <K, V> V cacheGet0(PersistentIndexedCache<K, V> cache, Dependency dependency)
+            throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        try {
+            // Gradle 6.8+
+            Method getMethod = cache.getClass().getMethod("get", Object.class, Function.class);
+            return (V) getMethod.invoke(cache, dependency, (Function) (__ -> null));
+        } catch (NoSuchMethodException e) {
+            // Gradle 4.3 - 6.7.+
+            Method getMethod = cache.getClass().getMethod("get", Object.class);
+            return (V) getMethod.invoke(cache, dependency);
+        }
+    }
+
     @Override
     public Optional<FailedDependency> get(Dependency dependency) {
-        Date cacheValue = withCache(cache -> cache.get(dependency));
+        Date cacheValue = withCache(cache -> cacheGet(cache, dependency));
         if (cacheValue == null) {
             LOGGER.debug("Could not find failed dependency for {} in cache", dependency);
             return Optional.empty();
         }
         if (cacheValue.getTime() <= new Date().getTime() - maxAge) {
-            LOGGER.debug("Failed dependency for {} expired: {} if longer than {} µs ago", dependency,
+            LOGGER.debug("Failed dependency for {} expired: {} is longer than {} µs ago", dependency,
                     cacheValue, maxAge);
             withCache(cache -> {
                 cache.remove(dependency);
