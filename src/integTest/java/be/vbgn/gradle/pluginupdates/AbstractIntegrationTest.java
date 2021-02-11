@@ -25,6 +25,7 @@ abstract public class AbstractIntegrationTest {
     @Parameters(name = "Gradle v{0}")
     public static Collection<Object[]> testData() {
         List<Object[]> gradleVersions = Arrays.asList(new Object[][]{
+                {"6.8"},
                 {"6.7"},
                 {"6.0.1"},
                 {"5.6.4"},
