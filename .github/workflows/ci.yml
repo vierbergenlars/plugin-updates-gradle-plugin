@@ -17,7 +17,14 @@ jobs:
           java-version: 11
       - name: Tests
         run: ./gradlew check
+      - name: Upload test reports
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: reports-test
+          path: build/reports
       - name: Upload analysis to sonarcloud
+        if: ${{ always() }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
