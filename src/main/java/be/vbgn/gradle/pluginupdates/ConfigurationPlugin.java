@@ -45,7 +45,7 @@ public class ConfigurationPlugin implements Plugin<PluginAware>, Serializable {
      *
      * @return The configuration for this extension block
      */
-    UpdateCheckerBuilderConfiguration getConfiguration() {
+    public UpdateCheckerBuilderConfiguration getConfiguration() {
         return configuration;
     }
 

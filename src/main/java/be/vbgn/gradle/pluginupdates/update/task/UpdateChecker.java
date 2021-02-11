@@ -1,4 +1,4 @@
-package be.vbgn.gradle.pluginupdates;
+package be.vbgn.gradle.pluginupdates.update.task;
 
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateBuilder;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerBuilderConfiguration;

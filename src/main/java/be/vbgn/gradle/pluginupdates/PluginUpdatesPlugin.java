@@ -1,12 +1,10 @@
 package be.vbgn.gradle.pluginupdates;
 
-import be.vbgn.gradle.pluginupdates.update.Update;
 import be.vbgn.gradle.pluginupdates.update.formatter.DefaultUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.PluginUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.UpdateFormatter;
-import java.util.List;
+import be.vbgn.gradle.pluginupdates.update.task.CheckUpdateTask;
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
 import org.codehaus.groovy.runtime.MethodClosure;
 import org.gradle.BuildResult;
 import org.gradle.api.Plugin;
@@ -16,7 +14,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.cache.CacheRepository;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.util.GradleVersion;
 
 /**
@@ -30,14 +28,6 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
     public static final String PLUGIN_ID = "be.vbgn.plugin-updates";
     private static final Logger LOGGER = Logging.getLogger(PluginUpdatesPlugin.class);
     private final MethodClosure buildFinishedCallback = new MethodClosure(this, "onBuildFinished");
-    private UpdateChecker updateChecker;
-    private CacheRepository cacheRepository;
-
-    @Inject
-    public PluginUpdatesPlugin(CacheRepository cacheRepository) {
-        this.cacheRepository = cacheRepository;
-    }
-
 
     /**
      * {@inheritDoc}
@@ -165,7 +155,18 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
      * @param gradle The gradle invocation to register the shared objects for
      */
     private void configurePlugin(@Nonnull Gradle gradle) {
-        updateChecker = new UpdateChecker(cacheRepository, new ConfigurationCollector(gradle));
+        gradle.allprojects(project -> {
+            TaskProvider<CheckUpdateTask> updateTask = project.getTasks()
+                    .register("checkGradlePluginUpdates", CheckUpdateTask.class, task -> {
+                        task.getConfigurations().add(project.getBuildscript().getConfigurations().named("classpath"));
+                        task.setDescription("Checks for updates for your Gradle plugins");
+                    });
+            project.getTasks().configureEach(task -> {
+                if (!(task instanceof CheckUpdateTask)) {
+                    task.finalizedBy(updateTask);
+                }
+            });
+        });
     }
 
 
@@ -176,15 +177,14 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
      */
     private void runBuildscriptUpdateCheck(@Nonnull Project project) {
         try {
-            List<Update> updates = updateChecker
-                    .getUpdates(project, project.getBuildscript().getConfigurations().getAt("classpath"));
-
             UpdateFormatter updateFormatter = new PluginUpdateFormatter(new DefaultUpdateFormatter());
 
-            updates.forEach(update -> {
-                if (update.isOutdated()) {
-                    LOGGER.warn("Plugin is outdated in {}: {}", project, updateFormatter.format(update));
-                }
+            project.getTasks().withType(CheckUpdateTask.class).forEach(checkUpdateTask -> {
+                checkUpdateTask.getUpdates().get().forEach(update -> {
+                    if (update.isOutdated()) {
+                        LOGGER.warn("Plugin is outdated in {}: {}", project, updateFormatter.format(update));
+                    }
+                });
             });
         } catch (Throwable e) {
             LOGGER.error("Plugin update check failed.", e);
