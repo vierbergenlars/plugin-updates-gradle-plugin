@@ -25,8 +25,9 @@ abstract public class AbstractIntegrationTest {
     @Parameters(name = "Gradle v{0}")
     public static Collection<Object[]> testData() {
         List<Object[]> gradleVersions = Arrays.asList(new Object[][]{
-                {"6.8"},
-                {"6.7"},
+                {"7.0-milestone-1"},
+                {"6.8.2"},
+                {"6.7.1"},
                 {"6.0.1"},
                 {"5.6.4"},
                 {"5.0"},
@@ -50,7 +51,6 @@ abstract public class AbstractIntegrationTest {
                 .withGradleVersion(gradleVersion)
                 .withTestKitDir(testProjectDir.getRoot().toPath().resolve("gradleHome").toFile())
                 .withArguments(task, "--stacktrace", "--rerun-tasks")
-                .withDebug(true)
                 .forwardOutput();
 
     }
