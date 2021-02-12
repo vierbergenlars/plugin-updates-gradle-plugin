@@ -1,5 +1,6 @@
-package be.vbgn.gradle.pluginupdates;
+package be.vbgn.gradle.pluginupdates.update.task;
 
+import be.vbgn.gradle.pluginupdates.ConfigurationPlugin;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerBuilderConfiguration;
 import be.vbgn.gradle.pluginupdates.dsl.internal.UpdateCheckerConfigurationImpl;
 import java.io.ByteArrayInputStream;
@@ -19,6 +20,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.PluginAware;
 
 class ConfigurationCollector {
+
     private static final Logger LOGGER = Logging.getLogger(ConfigurationCollector.class);
     private Gradle gradle;
     private UpdateCheckerBuilderConfiguration globalConfiguration = null;
@@ -29,7 +31,7 @@ class ConfigurationCollector {
     }
 
     private UpdateCheckerBuilderConfiguration global() {
-        if(globalConfiguration == null) {
+        if (globalConfiguration == null) {
             synchronized (this) {
                 // Check again in synchronized block, so we do not try to create the global configuration multiple times
                 // if multiple threads are checking the configuration concurrently

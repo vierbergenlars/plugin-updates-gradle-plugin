@@ -1,12 +1,11 @@
 package be.vbgn.gradle.pluginupdates;
 
-import be.vbgn.gradle.pluginupdates.update.Update;
 import be.vbgn.gradle.pluginupdates.update.formatter.DefaultUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.PluginUpdateFormatter;
 import be.vbgn.gradle.pluginupdates.update.formatter.UpdateFormatter;
-import java.util.List;
+import be.vbgn.gradle.pluginupdates.update.task.CheckUpdateTask;
+import java.util.UUID;
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
 import org.codehaus.groovy.runtime.MethodClosure;
 import org.gradle.BuildResult;
 import org.gradle.api.Plugin;
@@ -16,7 +15,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.cache.CacheRepository;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.util.GradleVersion;
 
 /**
@@ -30,14 +29,6 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
     public static final String PLUGIN_ID = "be.vbgn.plugin-updates";
     private static final Logger LOGGER = Logging.getLogger(PluginUpdatesPlugin.class);
     private final MethodClosure buildFinishedCallback = new MethodClosure(this, "onBuildFinished");
-    private UpdateChecker updateChecker;
-    private CacheRepository cacheRepository;
-
-    @Inject
-    public PluginUpdatesPlugin(CacheRepository cacheRepository) {
-        this.cacheRepository = cacheRepository;
-    }
-
 
     /**
      * {@inheritDoc}
@@ -84,7 +75,7 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
         Gradle gradle = project.getGradle();
         if (isOnline(gradle)) {
             LOGGER.debug("Register buildFinished callback for single project");
-            configurePlugin(gradle);
+            configurePlugin(project);
             project.getGradle().buildFinished(buildFinishedCallback.curry(project));
         }
     }
@@ -160,12 +151,34 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
     }
 
     /**
-     * Configures shared objects used by all update checks
+     * Configures tasks used by all update checks
      *
-     * @param gradle The gradle invocation to register the shared objects for
+     * @param gradle The gradle invocation to register the tasks for
      */
     private void configurePlugin(@Nonnull Gradle gradle) {
-        updateChecker = new UpdateChecker(cacheRepository, new ConfigurationCollector(gradle));
+        gradle.allprojects(this::configurePlugin);
+    }
+
+    /**
+     * Configures tasks used for update checks in a single project
+     *
+     * @param project The project to create the tasks for
+     */
+    private void configurePlugin(@Nonnull Project project) {
+        final String TASK_NAME = "checkGradlePluginUpdates_" + UUID.randomUUID().toString();
+        TaskProvider<CheckUpdateTask> updateTaskTaskProvider = project.getTasks()
+                .register(TASK_NAME, CheckUpdateTask.class, updateTask -> {
+                    updateTask.getConfiguration()
+                            .set(project.getBuildscript().getConfigurations().named("classpath"));
+                    updateTask.setDescription("Checks for updates for your Gradle plugins");
+                });
+        project.getRootProject().allprojects(p -> {
+            p.getTasks().configureEach(task -> {
+                if (!task.getClass().getPackage().getName().equals(CheckUpdateTask.class.getPackage().getName())) {
+                    task.finalizedBy(updateTaskTaskProvider);
+                }
+            });
+        });
     }
 
 
@@ -176,15 +189,14 @@ public class PluginUpdatesPlugin implements Plugin<PluginAware> {
      */
     private void runBuildscriptUpdateCheck(@Nonnull Project project) {
         try {
-            List<Update> updates = updateChecker
-                    .getUpdates(project, project.getBuildscript().getConfigurations().getAt("classpath"));
-
             UpdateFormatter updateFormatter = new PluginUpdateFormatter(new DefaultUpdateFormatter());
 
-            updates.forEach(update -> {
-                if (update.isOutdated()) {
-                    LOGGER.warn("Plugin is outdated in {}: {}", project, updateFormatter.format(update));
-                }
+            project.getTasks().withType(CheckUpdateTask.class).forEach(checkUpdateTask -> {
+                checkUpdateTask.getUpdates().get().forEach(update -> {
+                    if (update.isOutdated()) {
+                        LOGGER.warn("Plugin is outdated in {}: {}", project, updateFormatter.format(update));
+                    }
+                });
             });
         } catch (Throwable e) {
             LOGGER.error("Plugin update check failed.", e);
