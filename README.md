@@ -111,6 +111,10 @@ pluginUpdates {
         // Change the group and name of a plugin. Any version >= 0.1.4 of eu.xenit.gradle:alfresco-sdk will be
         // suggested as a replacement of any version of eu.xenit.gradle.plugins:ampde_gradle_plugin
         rename "eu.xenit.gradle.plugins:ampde_gradle_plugin" to "eu.xenit.gradle:alfresco-sdk:0.1.4+"
+        
+        // Change a plugin by Gradle Plugin ID. Any version of com.github.node-gradle.node will be suggested as
+        // a replacement of any version of com.moowork.node
+        rename "com.moowork.node:com.moowork.node.gradle.plugin" to "com.github.node-gradle.node:com.github.node-gradle.node.gradle.plugin"
 
         // Ignore a certain level of updates for a plugin
         ignore "gradle.plugin.com.github.eerohele:saxon-gradle" majorUpdates() // Ignore major updates for a plugin
