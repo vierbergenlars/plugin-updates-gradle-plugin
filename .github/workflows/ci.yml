@@ -1,8 +1,8 @@
 name: CI
 on:
   push:
-    branches-ignore:
-       - 'dependabot/**'
+    branches:
+      - master
   pull_request:
   schedule:
     - cron: '0 0 * * 1'
@@ -28,7 +28,7 @@ jobs:
           name: reports-test
           path: build/reports
       - name: Upload analysis to sonarcloud
-        if: ${{ always() }}
+        if: "${{ always() && env.SONAR_TOKEN != '' }}"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
